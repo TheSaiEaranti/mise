@@ -33,7 +33,7 @@ screen and you can rehearse as often as you like.
    ```
 5. Open **http://localhost:3000** in a browser window at 100% zoom, sized
    ≥ 1440 px wide so the week grid and the chat rail sit side by side.
-6. Keep the backup video (`demo.mp4`) open in another tab.
+6. Keep the backup video (`demo.webm`, 63 s, 1920×1080 — opens in Chrome) open in another tab.
 
 Backend and model: the Anthropic Messages API, **Claude Haiku 4.5** for every
 turn, escalating to **Claude Sonnet 5** only for compound requests or a tool
@@ -129,7 +129,7 @@ date/time).
 - **A command gives a clarifying question instead of acting** — answer it; it
   keeps working. Or run `bun run seed:demo`, reload, and repeat.
 - **The API errors** (network, key): the backend falls back to the claude CLI
-  automatically; it's slower (~5 s) but works. Or switch to the backup video.
+  automatically; it's slower (~5 s) but works. Or switch to the backup video (`demo.webm`).
 - **Cmd-Z does nothing** — the chat box has focus; click the calendar first, or
   use the **Undo** button on the card.
 
@@ -140,6 +140,7 @@ bun run seed:demo
 bun run demo:api          # terminal 1
 bun run demo:web          # terminal 2
 bun run record:demo --out demo.webm      # Playwright + your installed Chrome, 1920×1080
+# optional, for QuickTime / iOS (needs ffmpeg):
 ffmpeg -i demo.webm -c:v libx264 -pix_fmt yuv420p -movflags +faststart demo.mp4
 ```
 The recorder types the five commands with a visible cursor dot, waits for each
