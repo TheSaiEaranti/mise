@@ -1,6 +1,8 @@
 /**
- * Chat: one agent turn per POST (SPEC §4 — no token streaming, the output is
- * a tool call). GET /messages returns recent history, newest-last.
+ * Chat: one agent turn per POST. POST / answers with JSON when the turn ends;
+ * POST /stream is the same turn as Server-Sent Events (progress, then the same
+ * answer). There is still no token streaming of prose — the output is a tool
+ * call. GET /messages returns recent history, newest-last.
  *
  * The assistant APPLIES what it decides, rather than parking it behind an
  * approve click — except a cancel, which always asks first (SPEC §0; see

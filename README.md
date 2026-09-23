@@ -16,20 +16,26 @@ Five invariants define the app (SPEC §0):
 
 ## Quickstart
 
-Prerequisites: [Bun](https://bun.sh), [Ollama](https://ollama.com) (running),
-and optionally [Tailscale](https://tailscale.com) for phone/laptop access.
+Prerequisites: [Bun](https://bun.sh), an [Anthropic API key](https://console.anthropic.com)
+for the chat assistant, and optionally [Ollama](https://ollama.com) (the local
+fallback, and the model that reads schedule photos) and
+[Tailscale](https://tailscale.com) for phone/laptop access.
 
 ```bash
 bun install
-bash scripts/setup.sh    # pulls the models, checks Ollama + Tailscale, prints your tailnet URL
+echo 'ANTHROPIC_API_KEY=sk-ant-...' > .env   # gitignored; Bun loads it
 bun run seed             # demo semester, meals, a suite + cook assignment (WIPES the DB — never run against real data)
 bun dev                  # UI on :3000, API on :3001
 ```
 
-Two models: `qwen3:30b-a3b` does the scheduling — a mixture-of-experts model, so
-only ~3B parameters are active per token: it is as fast as an 8B and markedly
-better at picking the right tool and the right day. `qwen2.5vl:7b` reads photos
-of class schedules. Override with `MISE_MODEL` / `MISE_VISION_MODEL`.
+**Chat backends**, picked per turn (`MISE_CHAT_BACKEND=anthropic|claude|ollama`
+forces one): the **Anthropic API** when `ANTHROPIC_API_KEY` is set — Claude
+Haiku 4.5, escalating to Claude Sonnet 5 for compound or failed-validation turns
+(`MISE_ANTHROPIC_MODEL`, `MISE_ANTHROPIC_ESCALATION_MODEL`); else the **claude
+CLI** on your subscription login; else **Ollama** (`qwen3:30b-a3b`, `MISE_MODEL`).
+Each falls back down that chain per call. `qwen2.5vl:7b` (Ollama) reads photos of
+class schedules (`MISE_VISION_MODEL`); `bash scripts/setup.sh` pulls both local
+models and checks Tailscale.
 
 Open http://localhost:3000. Ollama stays on `127.0.0.1:11434` — only the API
 server talks to it.
@@ -65,7 +71,7 @@ server. Closing the window hides it to the tray; quit from the tray menu.
 
 | Path | What it is |
 |---|---|
-| `apps/api` | Bun + Hono API on :3001 — agent loop, proposal lifecycle, the only Ollama consumer |
+| `apps/api` | Bun + Hono API on :3001 — agent loop, proposal lifecycle, the only model consumer (Anthropic API / claude CLI / Ollama) |
 | `apps/web` | Next.js UI on :3000 — week view, chat + diff cards, Meals tab; responsive PWA |
 | `apps/desktop` | Tauri v2 shell wrapping the UI — tray + notifications (outside the Bun workspace) |
 | `packages/core` | Drizzle schema, validator, tools (dry/commit), agent — shared by api and web |
@@ -127,6 +133,89 @@ Sai's habits are hardcoded into the defaults, not into the app.
   what it got wrong in an editable preview, and the classes are added as pinned
   recurring events through the normal approve flow. The model reads pixels — it
   never writes to the database, and it never computes a timestamp.
+
+## How a chat turn works — and how fast it is
+
+"Move my gym block to 6pm" used to take ~10–25 seconds. It now takes ~10 ms,
+and a turn that needs the model ~1.3 s. Measured, not guessed: every turn is
+traced (prompt build, each model round with time-to-first-token and
+input / cache / output tokens, each tool dry-run and commit, SQLite time) and
+logged as one `[turn] {...}` line; in dev, **Ctrl+Shift+L** opens a latency
+panel with the last turns as a waterfall.
+
+```
+message ─┬─ fast path? ("move <block> to <time|day>", "push <block> back N",
+         │   "shift everything after <time> <day> back N")
+         │     └─ one tool call, no model ─────────────────────────────┐
+         └─ router: intent family → 3–6 tool schemas + core rules +     │
+            that family's prompt sections + only the days it touches   │
+              └─ Anthropic Messages API, streamed; tools + static      │
+                 prompt are one cached prefix (warmed at startup)      │
+                   └─ tool call ────────────────────────────────────── ┤
+                                                                       ▼
+            dry-run → Proposal row (I2) → applyProposal: validator (I4), commit
+                                                                       │
+            reply written from the committed diff; turn ends — no     ◄┘
+            extra model round to summarize (another round only for an
+            error, a conflict, or data it has to read)
+```
+
+The UI streams the turn (`POST /api/chat/stream`, Server-Sent Events): a status
+line ("Finding Gym on Thu…", "Checking conflicts…", "Moved"), the diff card the
+moment the dry-run returns, and the block slides to its new slot when the change
+commits. Drag-and-drop never involves the model (~7 ms over HTTP).
+
+None of this moved the safety: the model still only proposes; the fast path's
+call goes through the same dry-run → Proposal → validator → commit spine; a
+pinned class can't be moved by either; a cancel still waits for a tap.
+
+**Before → after**, 22 realistic commands × 2 against a fake Fall semester
+(`eval/latency/before.json`, `after.json`):
+
+| | before | after | |
+|---|---|---|---|
+| backend / model | `claude -p` per round, Sonnet | Anthropic API, Haiku 4.5 | |
+| p50 latency (all commands) | 10.40 s | 1.28 s | 8.1× faster |
+| p90 latency (all commands) | 18.80 s | 1.87 s | 10× faster |
+| p50 / p90 simple edits | 13.57 s / 24.55 s | 0.01 s / 1.59 s | |
+| model rounds per turn | 1.75 | 0.77 | |
+| input tokens per turn | ~302,000 | ~6,700 | 45× fewer |
+| prompt-cache hit rate | 85.6 % | 59.2 % | (see below) |
+| tool accuracy | 93.2 % | 100 % | |
+| tool + outcome accuracy | 90.9 % | 100 % | no command got worse |
+| answered with no model call | 0 / 44 | 16 / 44 | |
+
+Where the time went, and what fixed it (each step measured separately in
+`eval/latency/phase*.json`):
+
+1. **The CLI carried the user's claude.ai connectors** (138 tools, ~95k tokens)
+   into every call — `--tools ""` doesn't drop MCP. It doubled each round and
+   caused 2 of the 4 baseline misses. `--strict-mcp-config`: CLI p50 10.4 → 5.7 s,
+   accuracy → 100 %.
+2. **A process per model round** (~2.6 s to boot `claude`) and text-emulated
+   tools → a direct API backend with native tool use, streaming and prompt
+   caching: Sonnet p50 4.6 s.
+3. **Every round re-sent 30k chars of rules + 41k chars of tool schemas.** The
+   smaller model got fast but over-asked ("6 AM or 6 PM?") under the whole
+   manual — 72.7 % accuracy. The router sends only what the request needs,
+   and a new rule (3a) lists what is *not* ambiguous: Haiku 1.2 s, 100 %.
+4. **A whole extra round after every successful change** (31/31 turns), whose
+   text the app discards — the reply is written from committed data. Now the
+   turn ends.
+5. **The most common edits never needed a model** → the fast path.
+
+The cache hit rate went *down* because the prompt got 45× smaller and a third of
+turns send nothing at all; what's left is mostly the per-turn context, which is
+deliberately uncached (it changes every minute).
+
+Reproduce (`MISE_NOW` freezes the clock; each command runs on a fresh
+in-memory copy of the demo semester through the real commit policy):
+
+```bash
+bun run eval:latency --validate          # check the checks: oracle passes, no-op fails, wrong answers fail
+bun run eval:latency --label after       # ~22 turns; add --reps 2, --only c01,c06
+bun run eval:compare before after        # this table, plus a per-command accuracy check
+```
 
 ## What done looks like (SPEC §12)
 

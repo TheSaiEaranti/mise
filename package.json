@@ -16,7 +16,9 @@
     "seed": "bun run scripts/seed.ts",
     "db:generate": "drizzle-kit generate --config packages/core/drizzle.config.ts",
     "db:migrate": "bun run scripts/migrate.ts",
-    "setup": "bash scripts/setup.sh"
+    "setup": "bash scripts/setup.sh",
+    "eval:latency": "bun run scripts/latency-eval.ts",
+    "eval:compare": "bun run scripts/compare-latency.ts"
   },
   "devDependencies": {
     "typescript": "^5.7.3",
