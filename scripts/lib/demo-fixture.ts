@@ -10,8 +10,11 @@
  *   MW   SDS 322E Data Science        14:00–15:30  pinned
  *   TTh  CS 331 Algorithms            11:00–12:30  pinned
  *   TTh  ECO 304K Microeconomics      15:30–17:00  pinned
- *   Gym  Mon 17:00, Wed 17:00, Thu 17:30, Fri 16:00 (90 min, one weekly series per day)
+ *   Gym  Mon + Fri + today's and tomorrow's weekday (one weekly series per day;
+ *        on a Wednesday: Mon 17:00, Wed 17:00, Thu 17:30, Fri 16:00)
  *   Cook lunches  Sun 18:00, Tue 18:30 (60 min)
+ * Tomorrow always has a pinned class after 3pm (ECO 304K on TTh, else a
+ * pinned review session for it).
  * One-offs: a study group the day after `today` at 19:30, an advising
  * appointment two days after `today` at 13:00, a career fair next Tuesday.
  */
@@ -22,6 +25,17 @@ export const DEMO_SEMESTER_ID = 'sem-fall26';
 
 type Ev = typeof schema.event.$inferInsert;
 type Day = 'MO' | 'TU' | 'WE' | 'TH' | 'FR' | 'SA' | 'SU';
+
+/** Each weekday's gym slot, clear of that day's classes and cook session. */
+const GYM_SLOTS: [Day, string, string, string][] = [
+  ['MO', '17:00', '18:30', 'chest-back'],
+  ['TU', '17:15', '18:15', 'legs'], // ECO ends 17:00, cook at 18:30
+  ['WE', '17:00', '18:30', 'legs'],
+  ['TH', '17:30', '19:00', 'shoulders-arms'],
+  ['FR', '16:00', '17:30', 'chest-back'],
+  ['SA', '17:30', '19:00', 'legs'],
+  ['SU', '16:30', '18:00', 'shoulders-arms'], // cook at 18:00
+];
 
 /** First date on/after `from` that falls on weekday `code`. */
 function firstOnOrAfter(from: string, code: Day): string {
@@ -43,7 +57,7 @@ export interface DemoFixture {
   /** Stable ids the eval's checks refer to. */
   ids: {
     classes: { m340l: string; sds322: string; cs331: string; eco304: string };
-    gym: Record<'MO' | 'WE' | 'TH' | 'FR', string>;
+    gym: Partial<Record<Day, string>>;
     cook: Record<'SU' | 'TU', string>;
     studyGroup: string;
     advising: string;
@@ -115,16 +129,43 @@ export function seedDemoSemester(db: DB, today: string): DemoFixture {
   weekly('cls-eco304', 'ECO 304K Microeconomics', 'class', ['TU', 'TH'], '15:30', '17:00', true, 'UTC 3.102');
 
   // Gym — one weekly series per day, each carrying its split day.
-  weekly('gym-mo', 'Gym', 'gym', ['MO'], '17:00', '18:30', false, 'Gregory Gym', 'chest-back');
-  weekly('gym-we', 'Gym', 'gym', ['WE'], '17:00', '18:30', false, 'Gregory Gym', 'legs');
-  weekly('gym-th', 'Gym', 'gym', ['TH'], '17:30', '19:00', false, 'Gregory Gym', 'shoulders-arms');
-  weekly('gym-fr', 'Gym', 'gym', ['FR'], '16:00', '17:30', false, 'Gregory Gym', 'chest-back');
+  // Gym: Mondays and Fridays always, plus today's and tomorrow's weekday, so
+  // the demo's "move my gym block to 6pm" (today) and "shift everything after
+  // 3pm tomorrow" have a gym to act on whatever day it's run. On a Wednesday
+  // this is exactly Mon/Wed/Thu/Fri — the latency eval's fixture.
+  const gymDays = new Set<Day>(['MO', 'FR', weekdayCode(today) as Day, weekdayCode(addDaysWall(today, 1)) as Day]);
+  for (const [day, s, e, workout] of GYM_SLOTS) {
+    if (gymDays.has(day)) weekly(`gym-${day.toLowerCase()}`, 'Gym', 'gym', [day], s, e, false, 'Gregory Gym', workout);
+  }
 
   // Cook — lunches for the next few days.
   weekly('cook-su', 'Cook lunches', 'cook', ['SU'], '18:00', '19:00', false, null);
   weekly('cook-tu', 'Cook lunches', 'cook', ['TU'], '18:30', '19:30', false, null);
 
   const studyGroup = addDaysWall(today, 1);
+  // Tomorrow always has a pinned class after 3pm (the demo's "shift everything
+  // after 3pm tomorrow" must visibly leave it alone). TTh have ECO 304K; on any
+  // other day a review session for it stands in.
+  const tomorrowCode = weekdayCode(studyGroup);
+  if (tomorrowCode !== 'TU' && tomorrowCode !== 'TH') {
+    // After 3pm, clear of Mon/Wed's SDS class (ends 15:30) and before the gym.
+    const [rs, re] = tomorrowCode === 'MO' || tomorrowCode === 'WE' ? ['15:40', '16:30'] : ['15:00', '15:50'];
+    rows.push({
+      id: 'cls-eco304-review',
+      semester_id: DEMO_SEMESTER_ID,
+      title: 'ECO 304K Review Session',
+      kind: 'class',
+      starts_at: `${studyGroup}T${rs}`,
+      ends_at: `${studyGroup}T${re}`,
+      pinned: true,
+      rrule: null,
+      source: 'manual',
+      location: 'UTC 3.102',
+      notes: null,
+      color: null,
+      workout: null,
+    });
+  }
   const advising = addDaysWall(today, 2);
   const careerFair = firstOnOrAfter(addDaysWall(today, 3), 'TU');
   oneOff('evt-study', 'Study group — CS 331', 'personal', studyGroup, '19:30', '21:00', 'PCL 3.114');
@@ -182,7 +223,7 @@ export function seedDemoSemester(db: DB, today: string): DemoFixture {
     semester: { start, end },
     ids: {
       classes: { m340l: 'cls-m340l', sds322: 'cls-sds322', cs331: 'cls-cs331', eco304: 'cls-eco304' },
-      gym: { MO: 'gym-mo', WE: 'gym-we', TH: 'gym-th', FR: 'gym-fr' },
+      gym: Object.fromEntries([...gymDays].map((d) => [d, `gym-${d.toLowerCase()}`])),
       cook: { SU: 'cook-su', TU: 'cook-tu' },
       studyGroup: 'evt-study',
       advising: 'evt-advising',

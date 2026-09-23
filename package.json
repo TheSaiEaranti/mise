@@ -18,11 +18,18 @@
     "db:migrate": "bun run scripts/migrate.ts",
     "setup": "bash scripts/setup.sh",
     "eval:latency": "bun run scripts/latency-eval.ts",
-    "eval:compare": "bun run scripts/compare-latency.ts"
+    "eval:compare": "bun run scripts/compare-latency.ts",
+    "seed:demo": "bun run scripts/seed-demo.ts",
+    "dev:demo": "MISE_DB_PATH=data/demo.db bun run scripts/dev.ts",
+    "record:demo": "bun run scripts/record-demo.ts",
+    "demo:api": "MISE_DB_PATH=data/demo.db bun apps/api/src/index.ts",
+    "demo:web": "bun run --cwd apps/web build && bun run --cwd apps/web start",
+    "demo:timing": "bun run scripts/demo-timing.ts"
   },
   "devDependencies": {
-    "typescript": "^5.7.3",
+    "@types/bun": "^1.2.0",
     "drizzle-kit": "^0.30.4",
-    "@types/bun": "^1.2.0"
+    "playwright": "^1.63.0",
+    "typescript": "^5.7.3"
   }
 }

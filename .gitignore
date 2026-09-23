@@ -21,3 +21,10 @@ finetune/long-result.txt
 Screenshot*.png
 *.pdf
 .claude/
+
+# demo recordings (scripts/record-demo.ts) — share them, don't commit them
+demo.mp4
+demo.webm
+demo-frames/
+.demo-video-tmp/
+data/.mise-warmup
