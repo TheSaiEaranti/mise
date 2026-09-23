@@ -37,6 +37,14 @@ import {
   weekMonday,
 } from './time';
 import {
+  beginTurnTrace,
+  finishTurnTrace,
+  recordRound,
+  traceSpan,
+  withTurnTrace,
+  type TurnTrace,
+} from './trace';
+import {
   describeConflict,
   isActionable,
   isRealChange,
@@ -491,7 +499,31 @@ export async function runAgentTurn(
   db: DB,
   userMessage: string,
   deps?: AgentDeps,
+): Promise<{ reply: string; proposals: ProposalRow[]; trace: TurnTrace }> {
+  // Measurement wrapper (trace.ts): times the turn, logs one [turn] line, and
+  // hands the trace back. It does not change anything the turn does.
+  const live = beginTurnTrace(userMessage);
+  return withTurnTrace(live, async () => {
+    const out = await runAgentTurnInner(db, userMessage, live.trace, deps);
+    const t = live.trace;
+    t.outcome = {
+      proposals: out.proposals.length,
+      applied: out.proposals.filter((p) => p.status === 'approved').length,
+      reply_chars: out.reply.length,
+      tools: out.proposals.map((p) => p.tool_name),
+    };
+    finishTurnTrace(live);
+    return { ...out, trace: t };
+  });
+}
+
+async function runAgentTurnInner(
+  db: DB,
+  userMessage: string,
+  trace: TurnTrace,
+  deps?: AgentDeps,
 ): Promise<{ reply: string; proposals: ProposalRow[] }> {
+  const promptStart = performance.now();
   // The fine-tuned model runs on the COMPACT prompt with NO tool schemas (it
   // internalised them) — ~13x faster. The stock model gets the full prompt +
   // tool list. Everything after the model call (proposals, undo, replies) is
@@ -503,8 +535,10 @@ export async function runAgentTurn(
   // would bypass the tuned qwen entirely. The catch below still fires only
   // when the chosen path is truly down — for the claude backend that means
   // BOTH backends failed.
-  const chat =
-    deps?.chat ?? (!compact && activeChatBackend() === 'claude' ? claudeWithFallback : chatCompletion);
+  const useClaude = !deps?.chat && !compact && activeChatBackend() === 'claude';
+  const chat = deps?.chat ?? (useClaude ? claudeWithFallback : chatCompletion);
+  /** Trace label for a round whose backend reported nothing (e.g. it threw). */
+  const chosenBackend = deps?.chat ? 'injected' : useClaude ? 'claude-cli' : 'ollama';
 
   // Last 6 user/assistant turns BEFORE this message, oldest first. rowid
   // breaks created_at ties (minute precision) in insertion order.
@@ -519,6 +553,8 @@ export async function runAgentTurn(
 
   insertChatMessage(db, 'user', userMessage, null);
 
+  const context = buildContext(db);
+  const contextChars = context.length;
   const messages: ChatMessage[] = [
     // `/no_think` turns OFF qwen3's reasoning pass. It used to generate a long
     // <think> block every single call — which stripThink then discarded — so the
@@ -529,8 +565,8 @@ export async function runAgentTurn(
     {
       role: 'system',
       content: compact
-        ? COMPACT_SYSTEM + '\n\n' + buildContext(db) + '\n\n/no_think'
-        : SYSTEM_PROMPT + '\n\n' + buildContext(db) + '\n\n/no_think',
+        ? COMPACT_SYSTEM + '\n\n' + context + '\n\n/no_think'
+        : SYSTEM_PROMPT + '\n\n' + context + '\n\n/no_think',
     },
     // An assistant row with a proposal_id is a RECEIPT this code wrote after a
     // tool ran ("Create Going out with friends · Wed Jul 15"). Fed back verbatim
@@ -548,6 +584,18 @@ export async function runAgentTurn(
     })),
     { role: 'user', content: userMessage },
   ];
+
+  // Prompt build = history load + context + assembly (the user-row insert is
+  // in here too; it is one statement).
+  trace.prompt_build_ms = Math.round((performance.now() - promptStart) * 10) / 10;
+  const toolSpecs = compact ? [] : modelToolSpecs();
+  trace.prompt = {
+    system_chars: messages[0]!.content.length,
+    context_chars: contextChars,
+    tool_schema_chars: compact ? 0 : JSON.stringify(toolSpecs).length,
+    tools: toolSpecs.length,
+    history_messages: history.length,
+  };
 
   const proposals: ProposalRow[] = [];
   /** (tool, args) already proposed this turn — kills qwen's duplicate calls. */
@@ -575,6 +623,7 @@ export async function runAgentTurn(
 
   outer: for (let round = 0; round < MAX_ROUNDS; round++) {
     let res;
+    const roundStart = performance.now();
     try {
       res = await chat(
         compact
@@ -582,6 +631,13 @@ export async function runAgentTurn(
           : { messages, tools: modelToolSpecs(), tool_choice: 'auto', temperature: 0.1 },
       );
     } catch (e) {
+      recordRound({
+        round,
+        startedAt: roundStart,
+        tool_calls: 0,
+        error: errText(e).slice(0, 200),
+        meta: { backend: chosenBackend, model: null },
+      });
       // A dead model backend is a normal condition, not a crash. No proposal.
       // Log it though — on the claude path, reaching here means BOTH backends
       // failed, and the Ollama half of that story has no other trace.
@@ -589,6 +645,14 @@ export async function runAgentTurn(
       reply = OLLAMA_DOWN_REPLY;
       break;
     }
+    // Recorded outside the try: a malformed result must still throw exactly as
+    // it did before tracing existed, not be mistaken for a dead backend.
+    recordRound({
+      round,
+      startedAt: roundStart,
+      tool_calls: res?.message?.tool_calls?.length ?? 0,
+      meta: res?.meta ?? { backend: chosenBackend, model: null },
+    });
 
     const content = (res.message.content ?? '').trim();
     if (content) lastContent = content;
@@ -646,7 +710,7 @@ export async function runAgentTurn(
         // Read tools skip the proposal flow entirely; feed the data back and
         // loop for the model's natural-language answer.
         try {
-          const data = await tool.run(args);
+          const data = await traceSpan(`read:${name}`, () => tool.run(args));
           const json = JSON.stringify(data) ?? 'null';
           messages.push(toolMsg(call, json.length > TOOL_RESULT_MAX_CHARS ? json.slice(0, TOOL_RESULT_MAX_CHARS) + '…' : json));
         } catch (e) {
@@ -670,7 +734,7 @@ export async function runAgentTurn(
       seenMutations.add(fingerprint);
 
       try {
-        const result = await tool.run(args, 'dry');
+        const result = await traceSpan(`dry:${name}`, () => tool.run(args, 'dry'));
 
         // The tool could not do it — nothing matched, or it refused (the id was
         // a different event than the one named). Do NOT file a proposal: an
@@ -731,7 +795,7 @@ export async function runAgentTurn(
         // the gym move against a calendar where the friends block doesn't exist
         // yet — nothing is in the way, and the gym gets "moved" to exactly where
         // it already was.
-        const settled = deps?.settle ? await deps.settle(prop) : prop;
+        const settled = deps?.settle ? await traceSpan(`commit:${name}`, () => deps.settle!(prop)) : prop;
         proposals.push(settled);
 
         // Tell the model what actually happened, so it can react (e.g. having

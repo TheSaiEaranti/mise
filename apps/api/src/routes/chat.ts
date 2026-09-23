@@ -23,9 +23,9 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { desc, sql } from 'drizzle-orm';
-import { getDb, runAgentTurn, schema, severityOf, type Conflict, type ProposalRow } from '@mise/core';
+import { getDb, runAgentTurn, schema } from '@mise/core';
 import { parseBody, parseQuery } from '../lib/http';
-import { applyProposal, isAutoApplied } from '../lib/apply';
+import { settleForChat } from '../lib/apply';
 
 const MessageZ = z.object({
   message: z.string().min(1).max(2000),
@@ -41,22 +41,9 @@ chatRoute.post('/', async (c) => {
   const body = await parseBody(c, MessageZ);
   if (!body.ok) return body.res;
 
-  /**
-   * The policy, handed to the agent so each change lands BEFORE the next one is
-   * planned. The agent still never writes — it calls this, and this is the same
-   * applyProposal gate the approve button uses.
-   */
-  const settle = async (p: ProposalRow): Promise<ProposalRow> => {
-    const blocked = (p.conflicts as Conflict[]).some((k) => severityOf(k) === 'blocking');
-    if (!isAutoApplied(p.tool_name) || blocked) return p; // stays pending → a card to approve
-    try {
-      return (await applyProposal(p.id)).proposal;
-    } catch {
-      return p;
-    }
-  };
-
-  const { reply, proposals } = await runAgentTurn(getDb(), body.data.message, { settle });
+  // settleForChat is the commit policy (lib/apply.ts): auto-apply what policy
+  // allows through the one applyProposal gate; anything else stays pending.
+  const { reply, proposals } = await runAgentTurn(getDb(), body.data.message, { settle: settleForChat });
   return c.json({ reply, proposals });
 });
 

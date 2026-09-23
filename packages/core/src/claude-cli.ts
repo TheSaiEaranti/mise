@@ -26,6 +26,7 @@
  */
 import { existsSync } from 'node:fs';
 import { chatCompletion, parseToolCallText, type ChatCompletionResult, type ChatMessage } from './ollama';
+import type { ChatMeta } from './trace';
 
 /** Why a CLI call failed — the fallback log names this. */
 export type ClaudeErrorKind =
@@ -233,6 +234,20 @@ interface ClaudeResultJson {
   is_error?: boolean;
   result?: string;
   session_id?: string;
+  /** CLI's own wall clock for the call (excludes process spawn/boot). */
+  duration_ms?: number;
+  /** Time spent waiting on the API. */
+  duration_api_ms?: number;
+  usage?: {
+    input_tokens?: number;
+    output_tokens?: number;
+    cache_read_input_tokens?: number;
+    cache_creation_input_tokens?: number;
+  };
+}
+
+function num(n: unknown): number | null {
+  return typeof n === 'number' && Number.isFinite(n) ? n : null;
 }
 
 /** stdout should be a single JSON object; tolerate stray warning lines. */
@@ -433,6 +448,22 @@ export async function claudeChatCompletion(opts: {
 
   const raw = typeof parsed.result === 'string' ? parsed.result : '';
   const { text, tool_calls } = parseToolCallText(raw);
+  // Measurement only (trace.ts). The CLI does not stream in json mode, so
+  // there is no time-to-first-token to report.
+  const meta: ChatMeta = {
+    backend: 'claude-cli',
+    model: model(),
+    ttft_ms: null,
+    api_ms: num(parsed.duration_api_ms),
+    backend_ms: num(parsed.duration_ms),
+    input_tokens: num(parsed.usage?.input_tokens),
+    output_tokens: num(parsed.usage?.output_tokens),
+    cache_read_tokens: num(parsed.usage?.cache_read_input_tokens),
+    cache_write_tokens: num(parsed.usage?.cache_creation_input_tokens),
+    system_chars: system.length,
+    prompt_chars: prompt.length,
+    resumed: session !== undefined,
+  };
 
   // parseToolCallText leaves a block whose JSON doesn't parse IN the text. On
   // this backend that text is the final reply when no calls parsed — raw
@@ -456,10 +487,11 @@ export async function claudeChatCompletion(opts: {
         content: residual.trim(),
         tool_calls: salvaged.length > 0 ? salvaged : undefined,
       },
+      meta,
     };
   }
 
-  return { message: { content: text, tool_calls } };
+  return { message: { content: text, tool_calls }, meta };
 }
 
 /**
@@ -480,6 +512,10 @@ export async function claudeWithFallback(opts: {
   } catch (e) {
     const kind = e instanceof ClaudeCliError ? e.kind : 'unexpected';
     console.warn(`[chat] claude backend failed (${kind}): ${errText(e)} — falling back to Ollama for this call`);
-    return fallbackImpl(opts);
+    const res = await fallbackImpl(opts);
+    return {
+      ...res,
+      meta: { ...(res.meta ?? { backend: 'ollama', model: null }), fallback_from: 'claude-cli', fallback_reason: kind },
+    };
   }
 }

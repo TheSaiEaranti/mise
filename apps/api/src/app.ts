@@ -16,10 +16,13 @@ import { internshipsRoute } from './routes/internships';
 import { settingsRoute } from './routes/settings';
 import { eventsRoute } from './routes/events';
 import { scheduleImportRoute } from './routes/schedule-import';
+import { devRoute } from './routes/dev';
+import { requestTiming } from './lib/dev-timing';
 
 export const app = new Hono();
 
 app.use('*', cors()); // any origin — tailnet only (SPEC §1)
+app.use('/api/*', requestTiming); // dev latency panel; records, never alters
 
 app.onError((err, c) => {
   console.error('[api]', err);
@@ -39,3 +42,4 @@ app.route('/api/internships', internshipsRoute);
 app.route('/api/settings', settingsRoute);
 app.route('/api/events', eventsRoute);
 app.route('/api/schedule-import', scheduleImportRoute);
+app.route('/api/dev', devRoute);

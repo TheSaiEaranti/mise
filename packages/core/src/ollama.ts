@@ -3,6 +3,7 @@
  * agent loop. Talks to Ollama's OpenAI-compatible endpoint (SPEC §2) so the
  * tool-calling code stays portable.
  */
+import type { ChatMeta } from './trace';
 
 export const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://127.0.0.1:11434';
 export const MODEL = process.env.MISE_MODEL ?? 'qwen3:30b-a3b';
@@ -42,6 +43,9 @@ export interface ChatMessage {
 
 export interface ChatCompletionResult {
   message: { content: string | null; tool_calls?: ToolCall[] };
+  /** Timing/token facts about the call, for the turn trace. Never read by the
+   *  agent loop's logic — it only flows into trace.ts. */
+  meta?: ChatMeta;
 }
 
 /** qwen3 prepends a <think>…</think> block; callers never want it. */
@@ -188,6 +192,7 @@ export async function chatCompletion(opts: {
   }
   const data = (await res.json()) as {
     choices?: { message?: { content?: string | null; tool_calls?: ToolCall[] } }[];
+    usage?: { prompt_tokens?: number; completion_tokens?: number };
   };
   const message = data.choices?.[0]?.message;
   if (!message) throw new Error(`Ollama response from ${url} had no choices`);
@@ -201,5 +206,19 @@ export async function chatCompletion(opts: {
   if ((!tool_calls || tool_calls.length === 0) && raw.includes('<tool_call>')) {
     tool_calls = parseToolCallText(raw).tool_calls;
   }
-  return { message: { content: stripThink(raw), tool_calls } };
+  const systemChars = opts.messages[0]?.role === 'system' ? opts.messages[0].content.length : 0;
+  return {
+    message: { content: stripThink(raw), tool_calls },
+    meta: {
+      backend: 'ollama',
+      model: MODEL,
+      ttft_ms: null,
+      input_tokens: data.usage?.prompt_tokens ?? null,
+      output_tokens: data.usage?.completion_tokens ?? null,
+      cache_read_tokens: null,
+      cache_write_tokens: null,
+      system_chars: systemChars,
+      prompt_chars: opts.messages.slice(1).reduce((a, m) => a + (m.content?.length ?? 0), 0),
+    },
+  };
 }

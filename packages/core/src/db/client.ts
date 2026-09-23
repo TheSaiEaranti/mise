@@ -8,6 +8,7 @@ import { drizzle, type BunSQLiteDatabase } from 'drizzle-orm/bun-sqlite';
 import { join, dirname } from 'node:path';
 import { mkdirSync, readdirSync, readFileSync, existsSync } from 'node:fs';
 import * as schema from './schema';
+import { instrumentSqlite } from '../trace';
 
 export type DB = BunSQLiteDatabase<typeof schema>;
 
@@ -28,6 +29,7 @@ export function getDb(): DB {
   const path = dbPath();
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
   _sqlite = new Database(path, { create: true });
+  instrumentSqlite(_sqlite); // statement timing for the per-turn trace; inert outside a turn
   _sqlite.exec('PRAGMA journal_mode = WAL;');
   _sqlite.exec('PRAGMA foreign_keys = ON;');
   _db = drizzle(_sqlite, { schema });
@@ -39,6 +41,7 @@ export function getDb(): DB {
 export function resetDbForTests(): DB {
   _sqlite?.close();
   _sqlite = new Database(':memory:');
+  instrumentSqlite(_sqlite);
   _sqlite.exec('PRAGMA foreign_keys = ON;');
   _db = drizzle(_sqlite, { schema });
   migrate(_sqlite);

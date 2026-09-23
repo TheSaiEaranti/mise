@@ -29,14 +29,28 @@ function parseTs(ts: string): Date {
   return parseISO(ts);
 }
 
+/**
+ * The current instant. MISE_NOW (a wall time `YYYY-MM-DDTHH:mm` in DEFAULT_TZ)
+ * freezes it, so the latency eval and demo recordings see the same "today" on
+ * every run. Unset in normal use; an unparseable value is ignored.
+ */
+function nowMs(): number {
+  const fixed = process.env.MISE_NOW;
+  if (fixed && TS_RE.test(fixed)) {
+    const [y, mo, d, h, mi] = fixed.split(/[-T:]/).map(Number) as [number, number, number, number, number];
+    return new TZDate(y, mo - 1, d, h, mi, DEFAULT_TZ).getTime();
+  }
+  return Date.now();
+}
+
 /** Current wall-clock timestamp in the given zone, as YYYY-MM-DDTHH:mm. */
 export function nowInTz(tz: string = DEFAULT_TZ): string {
-  return format(new TZDate(Date.now(), tz), TS_FMT);
+  return format(new TZDate(nowMs(), tz), TS_FMT);
 }
 
 /** Today's date in the given zone. */
 export function todayInTz(tz: string = DEFAULT_TZ): string {
-  return format(new TZDate(Date.now(), tz), DATE_FMT);
+  return format(new TZDate(nowMs(), tz), DATE_FMT);
 }
 
 /** Shift a wall-time timestamp by whole minutes (± allowed). */

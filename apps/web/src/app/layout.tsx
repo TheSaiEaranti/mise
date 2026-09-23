@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, Inter_Tight } from 'next/font/google';
 import { AppProvider } from '@/lib/store';
 import { ChatPanel } from '@/components/chat/chat-panel';
 import { TopNav } from '@/components/top-nav';
+import { LatencyPanel } from '@/components/dev/latency-panel';
 import { OnboardingGate } from './onboarding-gate';
 import './globals.css';
 
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <ChatPanel />
             </div>
           </OnboardingGate>
+          {process.env.NODE_ENV !== 'production' && <LatencyPanel />}
         </AppProvider>
       </body>
     </html>

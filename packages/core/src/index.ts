@@ -27,5 +27,9 @@ export { setEventColor, setKindColor, setEventTitle, type ParsedClass } from './
 export { importClassesFromImage, normalizeDays, normalizeTime, stripDataUrl } from './schedule-import';
 export { undoProposal, isUndoable } from './undo';
 export { runAgentTurn, buildContext, SYSTEM_PROMPT } from './agent';
+export {
+  traceSpan, currentTrace, recentTurnTraces, summarizeTrace,
+  type TurnTrace, type RoundTrace, type SpanTrace, type ChatMeta,
+} from './trace';
 export { activeChatBackend, claudeChatCompletion, claudeWithFallback, resolveClaudeBin, ClaudeCliError, type ClaudeErrorKind } from './claude-cli';
 export { constraints, effectiveConstraints, readUserSettings, writeUserSettings, type Constraints } from '@mise/config/settings';

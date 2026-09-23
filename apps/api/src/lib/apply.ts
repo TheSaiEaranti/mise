@@ -15,6 +15,7 @@ import {
   nowInTz,
   schema,
   severityOf,
+  traceSpan,
   type Conflict,
   type DB,
   type Diff,
@@ -169,7 +170,7 @@ export async function applyProposal(id: string): Promise<ApplyResult> {
 
   // (2) Re-validate against CURRENT state; a conflict that wasn't there before
   // means the world changed underneath — stop and let a human look.
-  const fresh = await tool.run(parsed.data, 'dry');
+  const fresh = await traceSpan('apply.revalidate', () => tool.run(parsed.data, 'dry'));
   if (hasNewConflict(fresh.conflicts, storedKeys)) {
     return {
       status: 'needs_review',
@@ -197,7 +198,7 @@ export async function applyProposal(id: string): Promise<ApplyResult> {
   }
 
   // (4) Commit — the tool re-derives from current state inside a transaction.
-  const commit = await tool.run(parsed.data, 'commit');
+  const commit = await traceSpan('apply.commit', () => tool.run(parsed.data, 'commit'));
   if (commit.conflicts.some((k) => severityOf(k) === 'blocking')) {
     return { status: 'blocked', proposal: row };
   }
@@ -220,4 +221,21 @@ export async function applyProposal(id: string): Promise<ApplyResult> {
       conflicts: commit.conflicts as unknown,
     }),
   };
+}
+
+/**
+ * The chat turn's commit policy, handed to the agent so each change lands
+ * BEFORE the next one is planned. The agent still never writes (I1) — it
+ * calls this, and this is the same applyProposal gate the approve button uses.
+ * Lives here (not in routes/chat.ts) so scripts/latency-eval.ts commits
+ * exactly the way the app does.
+ */
+export async function settleForChat(p: ProposalRow): Promise<ProposalRow> {
+  const blocked = (p.conflicts as Conflict[]).some((k) => severityOf(k) === 'blocking');
+  if (!isAutoApplied(p.tool_name) || blocked) return p; // stays pending → a card to approve
+  try {
+    return (await applyProposal(p.id)).proposal;
+  } catch {
+    return p;
+  }
 }
