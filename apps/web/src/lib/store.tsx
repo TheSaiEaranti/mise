@@ -26,7 +26,7 @@ import {
   isUndoableProposal,
   getProposals,
   rejectProposal,
-  sendChat,
+  sendChatStream,
   severityOf,
   undoLast as undoLastApi,
   undoProposal as undoApplied,
@@ -69,6 +69,12 @@ export interface AppContextValue {
   chat: ChatMsg[];
   /** True while an agent turn is in flight. Render one pulsing dot, per DESIGN. */
   thinking: boolean;
+  /** What the turn in flight is doing ("Finding Gym on Thu…"), streamed. */
+  status: string | null;
+  /** The turn in flight's proposals: dry-run previews, then as the commit gate settled them. */
+  live: { proposal: ProposalRow; settled: boolean }[];
+  /** The last committed change's diff, for the week view's slide animation. */
+  lastCommit: { seq: number; proposal: ProposalRow } | null;
   send(message: string): Promise<void>;
   approve(id: string): Promise<{ status: string }>;
   reject(id: string): Promise<void>;
@@ -98,6 +104,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [chat, setChat] = useState<ChatMsg[]>([]);
   const [applied, setApplied] = useState<ProposalRow[]>([]);
   const [thinking, setThinking] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  const [live, setLive] = useState<{ proposal: ProposalRow; settled: boolean }[]>([]);
+  const liveRef = useRef<{ proposal: ProposalRow; settled: boolean }[]>([]);
+  const putLive = (next: { proposal: ProposalRow; settled: boolean }[]) => {
+    liveRef.current = next;
+    setLive(next);
+  };
+  const [lastCommit, setLastCommit] = useState<{ seq: number; proposal: ProposalRow } | null>(null);
+  const commitSeq = useRef(0);
   // Guards the poll from clobbering the optimistic message mid-turn.
   const thinkingRef = useRef(false);
   // Monotonic sequence for proposal fetches. On a slow link the 30s poll can
@@ -147,13 +162,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ]);
       thinkingRef.current = true;
       setThinking(true);
+      setStatus(null);
+      putLive([]);
       try {
-        const { reply, proposals: created } = await sendChat(trimmed);
+        const { reply, proposals: created } = await sendChatStream(trimmed, (e) => {
+          if (e.type === 'status') setStatus(e.text);
+          else if (e.type === 'proposal')
+            putLive([...liveRef.current.filter((x) => x.proposal.id !== e.proposal.id), { proposal: e.proposal, settled: false }]);
+          else if (e.type === 'settled') {
+            putLive(liveRef.current.map((x) => (x.proposal.id === e.proposal.id ? { proposal: e.proposal, settled: true } : x)));
+            if (e.proposal.status === 'approved') {
+              // The change is in the database now: move the block now, not
+              // when the reply arrives.
+              commitSeq.current += 1;
+              setLastCommit({ seq: commitSeq.current, proposal: e.proposal });
+              bumpSchedule();
+            }
+          }
+        });
         // The assistant applies what it decides (see apps/api/src/routes/chat.ts),
         // so most of these come back already 'approved'. Those render as
         // "here's what I did · Undo"; anything it could NOT apply — a cancel, or
         // something the validator blocked — comes back pending and still asks.
-        const done = created.filter((p) => isUndoableProposal(p));
+        // Every applied change keeps its receipt; the card offers Undo only
+        // where undo exists (chat-panel checks isUndoableProposal).
+        const done = created.filter((p) => p.status === 'approved');
         if (done.length > 0) setApplied((a) => [...a, ...done].slice(-6));
 
         setChat((c) => [
@@ -169,9 +202,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         bumpSchedule();
       } catch (e) {
         console.warn('[store] send failed', e);
+        // The stream broke, but anything it already committed is real: keep
+        // those receipts (with their Undo) and resync with the server.
+        const committed = liveRef.current.filter((x) => x.settled && x.proposal.status === 'approved').map((x) => x.proposal);
+        if (committed.length > 0) setApplied((a) => [...a, ...committed].slice(-6));
+        void refreshProposals();
+        bumpSchedule();
       } finally {
         thinkingRef.current = false;
         setThinking(false);
+        setStatus(null);
+        putLive([]);
       }
     },
     [refreshProposals, bumpSchedule],
@@ -315,6 +356,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         refreshProposals,
         chat,
         thinking,
+        status,
+        live,
+        lastCommit,
         send,
         approve,
         reject,

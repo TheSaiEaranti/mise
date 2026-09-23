@@ -26,11 +26,11 @@ export { tools, mutationTools, readTools, getTool, getModelTool, modelToolNames 
 export { setEventColor, setKindColor, setEventTitle, type ParsedClass } from './tools/add-classes';
 export { importClassesFromImage, normalizeDays, normalizeTime, stripDataUrl } from './schedule-import';
 export { undoProposal, isUndoable } from './undo';
-export { runAgentTurn, buildContext, SYSTEM_PROMPT } from './agent';
+export { runAgentTurn, buildContext, SYSTEM_PROMPT, warmupPrefixes, type TurnEvent } from './agent';
 export {
   traceSpan, currentTrace, recentTurnTraces, summarizeTrace,
   type TurnTrace, type RoundTrace, type SpanTrace, type ChatMeta,
 } from './trace';
-export { anthropicModels, anthropicChatCompletion, anthropicWithFallback } from './anthropic';
+export { anthropicModels, anthropicChatCompletion, anthropicWithFallback, warmAnthropicCache } from './anthropic';
 export { activeChatBackend, claudeChatCompletion, claudeWithFallback, resolveClaudeBin, ClaudeCliError, type ClaudeErrorKind } from './claude-cli';
 export { constraints, effectiveConstraints, readUserSettings, writeUserSettings, type Constraints } from '@mise/config/settings';

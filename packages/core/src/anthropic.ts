@@ -76,6 +76,7 @@ export interface AnthropicLike {
       finalMessage(): Promise<Anthropic.Message>;
       abort?(): void;
     };
+    create?(params: Anthropic.MessageCreateParamsNonStreaming): Promise<Anthropic.Message>;
   };
 }
 
@@ -383,6 +384,28 @@ export async function classifyIntent(message: string): Promise<(typeof ROUTE_LAB
     console.warn(`[chat] intent classification failed (${errorKind(e)}) — using the full prompt`);
     return null;
   }
+}
+
+/**
+ * Pre-warm the prompt cache: one `max_tokens: 0` request per prefix (tools +
+ * static system block, exactly as buildRequest renders them) writes the cache
+ * and returns immediately — no output is billed. The first real turn after
+ * startup then reads the prefix instead of prefilling it.
+ * Not streamed: `max_tokens: 0` is rejected with `stream: true`.
+ */
+export async function warmAnthropicCache(prefixes: { system: string; tools: unknown[] }[]): Promise<{ written: number; read: number }> {
+  const c = getClient();
+  let written = 0;
+  let read = 0;
+  for (const p of prefixes) {
+    const params = buildRequest({ messages: [{ role: 'user', content: 'warmup' }], tools: p.tools, system_blocks: [{ text: p.system, cache: true }] });
+    // The breakpoint must sit on the shared prefix, not the placeholder message.
+    const { cache_control: _tail, temperature: _t, ...rest } = params;
+    const msg = await c.messages.create?.({ ...rest, max_tokens: 0, stream: false } as Anthropic.MessageCreateParamsNonStreaming);
+    written += msg?.usage?.cache_creation_input_tokens ?? 0;
+    read += msg?.usage?.cache_read_input_tokens ?? 0;
+  }
+  return { written, read };
 }
 
 function errorKind(e: unknown): string {

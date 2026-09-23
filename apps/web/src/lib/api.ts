@@ -260,6 +260,59 @@ export function sendChat(message: string): Promise<{ reply: string; proposals: P
   return post('/api/chat', { message });
 }
 
+export type ChatStreamEvent =
+  | { type: 'status'; text: string }
+  | { type: 'proposal'; proposal: ProposalRow }
+  | { type: 'settled'; proposal: ProposalRow };
+
+/**
+ * The same turn as sendChat, streamed (POST /api/chat/stream, Server-Sent
+ * Events read off the fetch body — EventSource can't POST). Progress goes to
+ * `onEvent` as it happens; resolves with the final reply. If streaming isn't
+ * available (an old server, a proxy that buffers), falls back to sendChat.
+ */
+export async function sendChatStream(
+  message: string,
+  onEvent: (e: ChatStreamEvent) => void,
+): Promise<{ reply: string; proposals: ProposalRow[] }> {
+  // A network error is NOT retried through sendChat: the server may already
+  // be running the turn, and a second POST would apply the change twice.
+  const res = await fetch(`${apiBase()}/api/chat/stream`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message }),
+  });
+  // Only an older server without the route falls back to the JSON endpoint.
+  if (res.status === 404 || res.status === 405) return sendChat(message);
+  if (!res.ok || !res.body) throw new Error(`chat stream failed: ${res.status}`);
+
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buf = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (value) buf += value;
+    let cut: number;
+    while ((cut = buf.indexOf('\n\n')) >= 0) {
+      const block = buf.slice(0, cut);
+      buf = buf.slice(cut + 2);
+      let event = 'message';
+      let data = '';
+      for (const line of block.split('\n')) {
+        if (line.startsWith('event:')) event = line.slice(6).trim();
+        else if (line.startsWith('data:')) data += line.slice(5).trim();
+      }
+      if (!data) continue;
+      const payload = JSON.parse(data) as Record<string, unknown>;
+      if (event === 'done') return payload as unknown as { reply: string; proposals: ProposalRow[] };
+      if (event === 'error') throw new Error(String(payload.error ?? 'chat failed'));
+      if (event === 'status') onEvent({ type: 'status', text: String(payload.text ?? '') });
+      else if (event === 'proposal' || event === 'settled') onEvent({ type: event, proposal: payload.proposal as ProposalRow });
+    }
+    if (done) break;
+  }
+  throw new Error('chat stream ended without a reply');
+}
+
 export function getChatMessages(limit?: number): Promise<{ messages: ChatMessageRow[] }> {
   return request(`/api/chat/messages${limit ? `?limit=${limit}` : ''}`);
 }

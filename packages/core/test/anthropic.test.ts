@@ -286,6 +286,37 @@ describe('review fixes', () => {
   });
 });
 
+describe('cache warm-up', () => {
+  test('one max_tokens:0 request per prefix, breakpoint on the static block, not streamed', async () => {
+    const calls: Anthropic.MessageCreateParamsNonStreaming[] = [];
+    __setAnthropicTestOverrides({
+      client: {
+        messages: {
+          stream() {
+            throw new Error('warm-up must not stream');
+          },
+          async create(p) {
+            calls.push(p);
+            return message([], 'max_tokens', { cache_creation_input_tokens: 9000, cache_read_input_tokens: 0 });
+          },
+        },
+      },
+    });
+    const { warmAnthropicCache } = await import('../src/anthropic');
+    const { warmupPrefixes } = await import('../src/agent');
+    const r = await warmAnthropicCache(warmupPrefixes());
+    expect(calls).toHaveLength(4);
+    expect(r.written).toBe(36000);
+    for (const c of calls) {
+      expect(c.max_tokens).toBe(0);
+      expect(c.stream).toBe(false);
+      expect(c.cache_control).toBeUndefined();
+      expect((c.system as Anthropic.TextBlockParam[])[0]!.cache_control).toEqual({ type: 'ephemeral' });
+      expect((c.tools as Anthropic.Tool[]).every((t) => t.eager_input_streaming === true)).toBe(true);
+    }
+  });
+});
+
 describe('backend selection', () => {
   test('an API key makes the API the default; MISE_CHAT_BACKEND still wins', () => {
     process.env.MISE_CLAUDE_BIN = '/fake/claude';

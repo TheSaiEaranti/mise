@@ -13,7 +13,7 @@
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useApp } from '@/lib/store';
-import type { ProposalRow } from '@/lib/api';
+import { isUndoableProposal, type ProposalRow } from '@/lib/api';
 import { DiffCard } from './diff-card';
 
 const CHAT_CSS = `@keyframes mise-dot { from { opacity: 0.3; } to { opacity: 1; } }`;
@@ -21,7 +21,7 @@ const CHAT_CSS = `@keyframes mise-dot { from { opacity: 0.3; } to { opacity: 1; 
 const COLLAPSE_HOLD_MS = 400;
 
 export function ChatPanel() {
-  const { chat, thinking, send, proposals, approve, reject, applied, undo } = useApp();
+  const { chat, thinking, status, live, send, proposals, approve, reject, applied, undo } = useApp();
   const [draft, setDraft] = useState('');
   const [expanded, setExpanded] = useState(false);
   /** Just-approved rows, kept mounted while their card collapses. */
@@ -60,7 +60,15 @@ export function ChatPanel() {
   //   done    — the assistant already did it; shows what changed + Undo
   //   pending — it couldn't (a cancel, or something blocked); still asks
   //   held    — just approved by hand, kept mounted for the collapse animation
-  const display = new Map<string, { row: ProposalRow; approved: boolean; done: boolean }>();
+  const display = new Map<string, { row: ProposalRow; approved: boolean; done: boolean; preview?: boolean }>();
+  // The turn in flight: its diffs show the moment the dry-run returns, as a
+  // plain receipt (no buttons yet — the commit gate hasn't spoken).
+  for (const { proposal: p, settled } of live) {
+    // Settled but still pending (a cancel awaiting its tap, or refused): the
+    // real card, with its buttons or the refusal.
+    if (settled && p.status === 'pending') display.set(p.id, { row: p, approved: false, done: false });
+    else display.set(p.id, { row: p, approved: false, done: true, preview: !settled });
+  }
   for (const p of applied) {
     display.set(p.id, { row: p, approved: false, done: true });
   }
@@ -83,7 +91,7 @@ export function ChatPanel() {
         proposal={d.row}
         approved={d.approved}
         done={d.done}
-        onUndo={d.done ? () => undo(d.row.id) : undefined}
+        onUndo={d.done && !d.preview && isUndoableProposal(d.row) ? () => undo(d.row.id) : undefined}
         onApprove={() => handleApprove(d.row)}
         onReject={() => handleReject(d.row)}
       />
@@ -150,7 +158,7 @@ export function ChatPanel() {
 
       {/* Desktop: the right rail. No header — it's just the surface. */}
       <aside className="hidden min-w-0 border-l border-rule bg-paper md:flex md:h-dvh md:flex-col">
-        <MessageList items={items} thinking={thinking} dep={items.length} />
+        <MessageList items={items} thinking={thinking} status={status} dep={items.length} />
         <div className="border-t border-rule">
           <input
             {...inputProps}
@@ -195,28 +203,32 @@ export function ChatPanel() {
             </span>
           )}
         </div>
-        <MessageList items={items} thinking={thinking} dep={items.length} />
+        <MessageList items={items} thinking={thinking} status={status} dep={items.length} />
       </div>
     </>
   );
 }
 
-function MessageList({ items, thinking, dep }: { items: ReactNode[]; thinking: boolean; dep: number }) {
+function MessageList({ items, thinking, status, dep }: { items: ReactNode[]; thinking: boolean; status: string | null; dep: number }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [dep, thinking]);
+  }, [dep, thinking, status]);
   return (
     <div ref={ref} className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
       <div className="flex flex-col gap-4">
         {items}
         {thinking && (
-          <span
-            aria-label="Thinking"
-            className="inline-block h-2 w-2 self-start rounded-full bg-ink-soft"
-            style={{ animation: 'mise-dot 1s var(--ease) infinite alternate' }}
-          />
+          <div className="flex items-center gap-2 self-start" aria-live="polite">
+            <span
+              aria-hidden
+              className="inline-block h-2 w-2 rounded-full bg-ink-soft"
+              style={{ animation: 'mise-dot 1s var(--ease) infinite alternate' }}
+            />
+            {status && <span className="t-body text-ink-soft">{status}</span>}
+            {!status && <span className="sr-only">Thinking</span>}
+          </div>
         )}
       </div>
     </div>

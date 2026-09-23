@@ -111,6 +111,27 @@ describe('turn trace', () => {
     await expect(runAgentTurn(db, 'hello', { chat: bad })).rejects.toThrow();
   });
 
+  test('a status line built from bad model args never breaks the turn', async () => {
+    const bad: ChatCompletionResult = {
+      message: {
+        content: '',
+        tool_calls: [
+          {
+            id: 'b1',
+            type: 'function',
+            function: { name: 'set_event_time', arguments: JSON.stringify({ event_id: 'evt-gym', expect_title: 'Gym', date: '2026-09-31', start_time: '18:00', end_time: '19:00' }) },
+          },
+        ],
+      },
+    };
+    const events: unknown[] = [];
+    const { reply } = await runAgentTurn(db, 'gym at 6 on the 31st', {
+      chat: scripted([bad, { message: { content: "There's no September 31st." } }]),
+      onEvent: (e) => events.push(e),
+    });
+    expect(reply).toContain('September 31st');
+  });
+
   test('finished turns land in the ring buffer, newest first, and summarize to one line', async () => {
     await runAgentTurn(db, 'first', { chat: scripted([{ message: { content: 'a' } }]) });
     await runAgentTurn(db, 'second', { chat: scripted([{ message: { content: 'b' } }]) });

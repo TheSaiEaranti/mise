@@ -27,6 +27,7 @@ import { DayList } from '@/components/week/day-list';
 import { AddEventPopover, type NewEventArgs } from '@/components/week/add-event-popover';
 import { instanceKey } from '@/components/week/geometry';
 import { ImportSchedule } from '@/components/setup/import-schedule';
+import { useCommitSlide } from '@/lib/use-commit-slide';
 
 function Chevron({ dir }: { dir: 'left' | 'right' }) {
   return (
@@ -77,9 +78,11 @@ interface MovedNote {
 }
 
 export default function WeekPage() {
-  const { scheduleVersion, proposals, dragProposal, dragMove, undoLast, bumpSchedule } = useApp();
+  const { scheduleVersion, proposals, dragProposal, dragMove, undoLast, bumpSchedule, lastCommit } = useApp();
   const [monday, setMonday] = useState(() => weekMonday(todayInTz()));
   const [instances, setInstances] = useState<EventInstance[]>([]);
+  // A change the assistant committed slides its block to the new slot.
+  useCommitSlide(lastCommit, instances);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [addOpen, setAddOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);

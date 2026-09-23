@@ -18,7 +18,7 @@ import { schema } from './db/client';
 import { chatCompletion, type ChatMessage, type ToolCall } from './ollama';
 import { activeChatBackend, claudeWithFallback } from './claude-cli';
 import { anthropicWithFallback, classifyIntent } from './anthropic';
-import { CORE_SECTIONS, route, routeFor, type Route } from './router';
+import { CORE_SECTIONS, FAMILY_SECTIONS, FAMILY_TOOLS, route, routeFor, type Route } from './router';
 import { parseFastIntent, resolveFastCall } from './fast-path';
 import { getModelTool, getTool, modelToolNames, modelToolSpecs } from './tools/index';
 import { createProposal, newId, type ProposalRow } from './proposals';
@@ -234,6 +234,18 @@ function routedToolSpecs(names: string[] | null): unknown[] {
   if (!names) return all;
   const want = new Set(names);
   return all.filter((t) => want.has((t as { function: { name: string } }).function.name));
+}
+
+/**
+ * The prefixes worth pre-warming at server start (anthropic.ts
+ * warmAnthropicCache): the commonest families — move (what the fast path
+ * can't parse), create, recurring, cancel. ~$0.03 of cache writes per cold
+ * start on Haiku.
+ */
+export function warmupPrefixes(): { system: string; tools: unknown[] }[] {
+  // Not the full prompt: unplaced turns run on the escalated model (a
+  // different cache), and they're rare — not worth ~20k tokens per start.
+  return (['move', 'create', 'recurring', 'cancel'] as const).map((f) => ({ system: promptFor(FAMILY_SECTIONS[f]), tools: routedToolSpecs(FAMILY_TOOLS[f]) }));
 }
 
 const MAX_TABLE_ROWS = 60;
@@ -532,6 +544,73 @@ export interface AgentDeps {
   settle?: (proposal: ProposalRow) => Promise<ProposalRow>;
   /** false = never take the fast path (fast-path.ts). Default on. */
   fastPath?: boolean;
+  /**
+   * Progress for the UI (SSE, routes/chat.ts): a status line while the turn
+   * works, each proposal as soon as its dry-run returns, and again once the
+   * commit gate has settled it. Purely observational — never awaited.
+   */
+  onEvent?: (e: TurnEvent) => void;
+}
+
+export type TurnEvent =
+  | { type: 'status'; text: string }
+  | { type: 'proposal'; proposal: ProposalRow }
+  | { type: 'settled'; proposal: ProposalRow };
+
+function emit(deps: AgentDeps | undefined, e: TurnEvent | (() => TurnEvent)): void {
+  if (!deps?.onEvent) return;
+  try {
+    // Built lazily, inside the guard: formatting a status from model-supplied
+    // args (a "2026-09-31") must never be able to break the turn itself.
+    deps.onEvent(typeof e === 'function' ? e() : e);
+  } catch {
+    // a broken listener or status line must never break a turn
+  }
+}
+
+/** What the turn is doing, in Sai's words, from the call it's about to run. */
+export function statusFor(tool: string, args: Record<string, unknown>): string {
+  const title = typeof args.expect_title === 'string' ? args.expect_title : typeof args.title === 'string' ? args.title : null;
+  const date = typeof args.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(args.date) ? fmtDateLong(args.date, 'EEE') : null;
+  const on = date ? ` on ${date}` : '';
+  switch (tool) {
+    case 'shift_events':
+      return args.scope === 'day' || args.scope === 'range' ? `Shifting ${date ?? 'the day'}…` : `Finding ${title ?? 'it'}${on}…`;
+    case 'set_event_time':
+    case 'place_adjacent':
+    case 'reschedule_to_free_slot':
+    case 'set_duration':
+      return `Finding ${title ?? 'it'}${on}…`;
+    case 'create_event':
+    case 'fit_in_event':
+    case 'block_free_time':
+      return `Making room for ${title ?? 'it'}${on}…`;
+    case 'cancel_event':
+      return `Finding ${title ?? 'it'}${on}…`;
+    case 'set_recurring_days':
+    case 'set_recurrence':
+      return `Reshaping ${title ?? 'the repeat'}…`;
+    case 'set_reminder':
+      return 'Setting a reminder…';
+    case 'set_preference':
+      return 'Saving that rule…';
+    case 'get_schedule':
+    case 'get_meals':
+    case 'search_internships':
+      return 'Checking your schedule…';
+    default:
+      return 'Working on it…';
+  }
+}
+
+function settledStatus(p: ProposalRow): string {
+  if (p.status === 'approved') {
+    const ch = (p.diff as Diff).changes.filter(isRealChange);
+    if (ch.length > 0 && ch.every((c) => c.before && !c.after)) return 'Cancelled';
+    if (ch.length > 0 && ch.every((c) => !c.before && c.after)) return 'Added';
+    return ch.length > 0 ? 'Moved' : 'Done';
+  }
+  return (p.conflicts as Conflict[]).some((c) => severityOf(c) === 'blocking') ? "Can't do that one" : 'Waiting for your OK';
 }
 
 /**
@@ -558,6 +637,7 @@ async function tryFastPath(
   if (!tool || tool.kind !== 'mutation') return null;
   const parsed = tool.argsSchema.safeParse(call.args);
   if (!parsed.success) return null;
+  emit(deps, () => ({ type: 'status', text: statusFor(call.tool, parsed.data as Record<string, unknown>) }));
   const result = await traceSpan(`dry:${call.tool}`, () => tool.run(parsed.data, 'dry'));
   if (!isActionable(result.diff) || result.conflicts.some((c) => severityOf(c) === 'blocking')) return null;
 
@@ -568,7 +648,11 @@ async function tryFastPath(
     diff: result.diff,
     conflicts: result.conflicts,
   });
+  emit(deps, { type: 'proposal', proposal: prop });
+  emit(deps, { type: 'status', text: 'Checking conflicts…' });
   const settled = deps?.settle ? await traceSpan(`commit:${call.tool}`, () => deps.settle!(prop)) : prop;
+  emit(deps, { type: 'settled', proposal: settled });
+  emit(deps, () => ({ type: 'status', text: settledStatus(settled) }));
   trace.route = { families: ['move'], source: 'fast_path', complex: false, tools: 0, days: [call.date] };
   const reply = humanizeTimes(describeOutcome([settled]) || formatDiffSummary(result.diff));
   insertChatMessage(db, 'assistant', reply, settled.id);
@@ -673,6 +757,7 @@ async function runAgentTurnInner(
   insertChatMessage(db, 'user', userMessage, null);
 
   const today = contextToday(db);
+  emit(deps, { type: 'status', text: 'Looking at your calendar…' });
 
   // Fast path: "move my gym to 6pm" and friends need no model at all. Like the
   // early exit, it's for callers with a commit policy (the chat route, the
@@ -906,6 +991,7 @@ async function runAgentTurnInner(
         continue;
       }
 
+      emit(deps, () => ({ type: 'status', text: statusFor(name, args as Record<string, unknown>) }));
       if (tool.kind === 'read') {
         needsModel = true; // the model has to read the data to answer
         // Read tools skip the proposal flow entirely; feed the data back and
@@ -997,7 +1083,11 @@ async function runAgentTurnInner(
         // the gym move against a calendar where the friends block doesn't exist
         // yet — nothing is in the way, and the gym gets "moved" to exactly where
         // it already was.
+        emit(deps, { type: 'proposal', proposal: prop });
+        emit(deps, { type: 'status', text: 'Checking conflicts…' });
         const settled = deps?.settle ? await traceSpan(`commit:${name}`, () => deps.settle!(prop)) : prop;
+        emit(deps, { type: 'settled', proposal: settled });
+        emit(deps, () => ({ type: 'status', text: settledStatus(settled) }));
         proposals.push(settled);
         roundMutations++;
         if (name === 'set_preference' && (args as { type?: string }).type === 'buffer') followUpRule = true;

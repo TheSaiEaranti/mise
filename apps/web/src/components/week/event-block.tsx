@@ -16,6 +16,7 @@
  *
  * Click (pointer moved less than the slop) opens the color popover instead.
  */
+import { flipKey } from '@/lib/use-commit-slide';
 import { useCallback, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { fmtRange12 } from '@mise/core/time';
@@ -350,6 +351,7 @@ export function EventBlock({
     <>
       <div
         ref={blockRef}
+        data-flip-key={flipKey(inst.title, inst.starts_at)}
         className={clsx(
           'absolute left-1 right-1 select-none overflow-hidden rounded-r px-2',
           inst.pinned
