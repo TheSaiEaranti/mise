@@ -381,9 +381,10 @@ describe('proposal lifecycle (the drag path)', () => {
     expect(u3.ok).toBe(false);
   });
 
-  test('a cancel auto-applies (no approval), and Cmd-Z brings it back', async () => {
-    // The point of the change: cancel is now something the assistant just does.
-    expect(isAutoApplied('cancel_event')).toBe(true);
+  test('a cancel waits for approval (never auto-applied), and Cmd-Z brings it back', async () => {
+    // A cancel always asks first (SPEC §0): chat files it pending; only an
+    // explicit approve — the confirm tap — deletes anything.
+    expect(isAutoApplied('cancel_event')).toBe(false);
 
     const cancel = await createProposalVia('cancel_event', { event_id: 'gym1', expect_title: 'Gym' });
     expect((await app.request(`/api/proposals/${cancel.id}/approve`, jsonReq('POST'))).status).toBe(200);

@@ -3,21 +3,22 @@
  * a tool call). GET /messages returns recent history, newest-last.
  *
  * The assistant APPLIES what it decides, rather than parking it behind an
- * approve click. Sai asked for that in as many words: he doesn't want to
- * approve anything, cancels included, he wants to trust it. So the safety moved
- * from "a human clicks yes" to properties that hold whether or not anyone is
- * watching:
+ * approve click — except a cancel, which always asks first (SPEC §0; see
+ * AUTO_APPLY in lib/apply.ts). Sai asked for that in as many words: he doesn't
+ * want to approve small, reversible things, he wants to trust it. So for those
+ * the safety moved from "a human clicks yes" to properties that hold whether or
+ * not anyone is watching:
  *
  *   - applyProposal is the only door to the DB, and it refuses anything with a
  *     blocking conflict — a pinned class cannot move, approved or not (I4)
- *   - every applied change, cancels now included, is reversible with Cmd-Z
- *     (undo.ts recreates a cancelled event / drops a cancelled occurrence)
+ *   - every applied change is reversible with Cmd-Z (undo.ts also recreates a
+ *     cancelled event / drops a cancelled occurrence once a cancel is confirmed)
  *   - every change, applied or not, is a row in the proposal audit log
  *
- * The only things that still can't auto-apply are the user-initiated pinned
- * paths (setup_semester, add_classes, drop_class) — the chat model can't reach
- * those at all. A proposal the model somehow could not apply stays pending and
- * surfaces as a diff card.
+ * What never auto-applies from chat: cancel_event (it waits on a confirm card),
+ * and the user-initiated semester paths (setup_semester, drop_class), which the
+ * chat model can't reach at all. A proposal the model somehow could not apply
+ * stays pending and surfaces as a diff card too.
  */
 import { Hono } from 'hono';
 import { z } from 'zod';

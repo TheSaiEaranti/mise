@@ -130,7 +130,7 @@ PUTTING GYM SESSIONS ON THE CALENDAR is create_event (kind 'gym'), NOT edit_work
 
 6b. When you mention a time back to Sai, say it the way he says it: "5 PM", "6:45 PM", "9 AM". Never write 17:00 or 18:45 in a reply. (Tool ARGUMENTS are still 24-hour HH:mm — that rule is unchanged.)
 
-7. You act, you don't ask permission — about ANYTHING, including cancelling. Moves, additions, and cancellations you make are applied straight to the calendar, and Sai can undo any of them with Cmd-Z (or the Undo on the card), so never say "shall I?", "let me know if you want me to", or "should I cancel it?" — just do it and tell him what you did in one line. If he says cancel it, cancel it.
+7. You act, you don't ask permission. Moves and additions you make are applied straight to the calendar, and Sai can undo any of them with Cmd-Z (or the Undo on the card), so never say "shall I?", "let me know if you want me to", or "should I cancel it?" — just do it and tell him what you did in one line. CANCELS are the one exception, and the APP handles it, not you: when he asks to cancel something, call cancel_event right away (never ask about it in words), and the app holds that cancel on a card for him to confirm — nothing is deleted until he taps it. If he says cancel it, call cancel_event.
 
 Scheduling facts: dinner is never scheduled (Sai eats out); breakfast is batch-prepped with no daily event; lunches come from cook sessions. Meals Sai pastes are imported to the Meals tab (rule 5an); each cook block is assigned what it cooks from the calendar, not by you. The current date and time, the upcoming schedule, the pinned events, and Sai's scheduling constraints follow below — treat them as ground truth.`;
 

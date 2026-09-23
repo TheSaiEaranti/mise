@@ -34,12 +34,16 @@ export interface ApplyResult {
  * Which tools may be applied WITHOUT a human clicking approve.
  *
  * The line is reversibility. Sai asked the assistant to stop asking him to
- * approve things — to just do them — so everything the agent reaches for in
- * chat auto-applies, INCLUDING cancel_event, which now undoes (a cancelled
- * occurrence comes back; a deleted one-off is recreated — see undo.ts). The
- * safety is no longer a human clicking yes; it's that applyProposal refuses any
- * blocking conflict (a class can't move, approved or not) and every change is
- * one Cmd-Z from reversed.
+ * approve things — to just do them — so moves, additions and edits the agent
+ * reaches for in chat auto-apply. The safety there is not a human clicking yes;
+ * it's that applyProposal refuses any blocking conflict (a class can't move,
+ * approved or not) and every change is one Cmd-Z from reversed.
+ *
+ * cancel_event is deliberately NOT here: a cancel always asks first (SPEC §0,
+ * README). It deletes the event and whatever meal plan it was cooking, and undo
+ * can't honestly put all of that back, so from chat it stays pending and shows
+ * as a card Sai confirms. (The block popover's own delete files AND approves in
+ * one step — its confirm tap already is the yes — so it doesn't go through here.)
  *
  * add_classes is here now: Sai asked that the assistant be able to rebuild his
  * schedule itself, classes included, so a chat "add my classes …" auto-applies
@@ -66,7 +70,6 @@ const AUTO_APPLY = new Set([
   'add_classes',
   'block_free_time',
   'reschedule_to_free_slot',
-  'cancel_event',
   'edit_workout',
   'import_meals',
   'create_suite',
