@@ -123,7 +123,8 @@ cache warm-up the server does:
 Every step is under 3 s, and on every round the story held: the pinned class
 didn't move, Fridays lost their gym, the cancel asked first, Undo restored it.
 Re-check on the day with `bun run demo:timing --now 2026-09-25T14:00` (any
-date/time).
+date/time). **Not on a Monday:** "tomorrow" is then Tuesday, whose gym would
+land on ECO 304K an hour earlier, so step 2 is refused (Mise says why).
 
 ## If something goes wrong
 
