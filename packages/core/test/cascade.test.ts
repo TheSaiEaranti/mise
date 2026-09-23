@@ -197,3 +197,37 @@ describe('dry runs make room too, so the diff card tells the truth', () => {
     ]);
   });
 });
+
+// Only what the move is part of gets settled. An overlap that was already on
+// the day (a quiz booked over a lecture, two personal blocks entered on top of
+// each other) is not this move's to fix, and must not stop it either.
+describe('a clash the move has nothing to do with is left alone', () => {
+  const extra = (id: string, title: string, s: string, e: string, pinned: boolean) => ({
+    id, semester_id: 's1', title, kind: pinned ? ('class' as const) : ('personal' as const),
+    starts_at: `2026-09-08T${s}`, ends_at: `2026-09-08T${e}`,
+    pinned, rrule: null, source: 'manual' as const, location: null, notes: null, color: null, workout: null,
+  });
+
+  test('a class already overlapping a quiz does not refuse an unrelated move', async () => {
+    db.insert(schema.event).values(extra('evt-quiz', 'CS 429 Quiz', '10:30', '11:00', true)).run();
+    const { diff, conflicts } = await shiftGym(120);
+    expect(conflicts.filter((c) => severityOf(c) === 'blocking')).toEqual([]);
+    expect(diff.changes.map((c) => c.title)).toEqual(['Gym']);
+    expect(day()).toContain('19:00-20:30 Gym');
+  });
+
+  test('two blocks already on top of each other are not pushed by an unrelated move', async () => {
+    db.insert(schema.event)
+      .values([extra('evt-call', 'Call with mom', '13:00', '13:30', false), extra('evt-laundry', 'Laundry', '13:15', '14:00', false)])
+      .run();
+    const { diff } = await shiftGym(120);
+    expect(diff.changes.map((c) => c.title)).toEqual(['Gym']);
+    expect(day()).toEqual([
+      '10:00-11:30 CS 429',
+      '13:00-13:30 Call with mom',
+      '13:15-14:00 Laundry',
+      '16:00-17:00 Cook lunches',
+      '19:00-20:30 Gym',
+    ]);
+  });
+});

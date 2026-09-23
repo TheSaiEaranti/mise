@@ -16,6 +16,12 @@
  *   next thing, that one moves too. The knock-ons are real changes in the diff,
  *   so you see the whole ripple and can undo the lot.
  *
+ *   Only that ripple is settled. An overlap already on the day between two
+ *   things the placement never touches (a quiz booked over a lecture) is not
+ *   its to fix: pushing one would move something nobody asked about, and
+ *   refusing would block a change that has nothing to do with it. The
+ *   validator never blames a proposal for pre-existing state either.
+ *
  * Pushing is always FORWARD. Pulling an event earlier to make room would move
  * something you'd already planned your day around into the past-facing part of
  * it; later is the direction that costs you the least.
@@ -128,7 +134,9 @@ export function makeRoom(db: DB, primary: EventChange[]): RoomResult {
       }
     }
 
-    // Settle the day: repeatedly find a collision and push the movable side.
+    // Settle the day: repeatedly find a collision the placement is part of (one
+    // side placed or already pushed) and push the movable side.
+    const involved = (p: Placed) => p.anchored || p.pushed;
     for (let i = 0; i <= MAX_PUSHES; i++) {
       board.sort((a, b) => (a.starts_at < b.starts_at ? -1 : a.starts_at > b.starts_at ? 1 : 0));
 
@@ -136,6 +144,7 @@ export function makeRoom(db: DB, primary: EventChange[]): RoomResult {
       outer: for (let x = 0; x < board.length; x++) {
         for (let y = x + 1; y < board.length; y++) {
           if (board[y]!.starts_at >= board[x]!.ends_at) break; // sorted: nothing later can hit x
+          if (!involved(board[x]!) && !involved(board[y]!)) continue; // was there before; not ours
           if (overlaps(board[x]!, board[y]!)) {
             clash = [board[x]!, board[y]!];
             break outer;
