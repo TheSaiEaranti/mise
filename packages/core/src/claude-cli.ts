@@ -13,7 +13,13 @@
  *
  * Empirical notes from probing v2.1.226 (do not "fix" these without re-probing):
  * - `--tools ""` disables ALL built-in tools — pure text turns, no permission
- *   flags needed.
+ *   flags needed. It does NOT drop MCP tools: without `--strict-mcp-config`
+ *   every call also carried the user's claude.ai connectors (138 tools, ~95k
+ *   tokens — Gmail, etc.; re-probed on v2.1.229). They were never callable
+ *   here (non-interactive -p denies them), but they doubled each round's
+ *   latency and made the model answer "only unrelated tools are available"
+ *   instead of emitting a <tool_call>. `--strict-mcp-config` with no
+ *   `--mcp-config` loads none, and keeps subscription auth.
  * - stdin must carry data and close, or every call stalls 3s waiting on it.
  * - `--bare` / `--setting-sources ""` BREAK subscription auth ("Not logged in")
  *   — never add them.
@@ -280,7 +286,7 @@ async function invokeClaude(bin: string, system: string, prompt: string, resumeI
   // verified file/stdin channel for the system prompt, and embedding it in the
   // user prompt would demote its instruction authority. Revisit if the CLI
   // grows a --system-prompt-file flag.
-  const cmd = [bin, '-p', '--output-format', 'json', '--model', model(), '--tools', '', '--system-prompt', system];
+  const cmd = [bin, '-p', '--output-format', 'json', '--model', model(), '--tools', '', '--strict-mcp-config', '--system-prompt', system];
   if (resumeId) cmd.push('--resume', resumeId);
 
   let proc: ClaudeSpawnLike;

@@ -243,6 +243,10 @@ describe('claudeChatCompletion', () => {
     expect(first.cmd[first.cmd.indexOf('--output-format') + 1]).toBe('json');
     expect(first.cmd[first.cmd.indexOf('--model') + 1]).toBe('sonnet');
     expect(first.cmd[first.cmd.indexOf('--tools') + 1]).toBe('');
+    // No MCP servers: the user's connectors must never ride along into Mise's
+    // scheduling prompts (they cost ~95k tokens a call and confused the model).
+    expect(first.cmd).toContain('--strict-mcp-config');
+    expect(first.cmd).not.toContain('--mcp-config');
     expect(first.cmd).not.toContain('--resume');
     const sys = first.cmd[first.cmd.indexOf('--system-prompt') + 1]!;
     expect(sys).toContain('You are Mise');
