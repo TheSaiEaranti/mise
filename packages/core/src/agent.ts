@@ -529,7 +529,8 @@ export function describeOutcome(proposals: ProposalRow[]): string {
 
   const lines = [...done];
   if (asks.length > 0) lines.push(`${asks.join('. ')} — approve it below`);
-  lines.push(...refused);
+  // A refused attempt the turn then got right is noise, not news.
+  if (done.length === 0 && asks.length === 0) lines.push(...refused);
   return lines.length > 0 ? `${lines.join('. ')}.` : '';
 }
 
@@ -782,13 +783,22 @@ async function runAgentTurnInner(
   // other backend (or a failed classification) gets the full prompt.
   let turnRoute: Route | null = compact ? null : route(userMessage, today);
   // An answer to the assistant's own question ("which day?" → "thursday, 6
-  // to 8") only makes sense with the question: full prompt, stronger model.
+  // to 8") only makes sense together with the request the question was about.
   const lastRow = history[history.length - 1];
-  if (turnRoute && lastRow?.role === 'assistant' && lastRow.proposal_id === null && lastRow.content.trim().endsWith('?')) {
-    turnRoute = { ...routeFor(['general'], userMessage, today, 'regex'), complex: true };
+  const answeringQuestion = lastRow?.role === 'assistant' && lastRow.proposal_id === null && lastRow.content.trim().endsWith('?');
+  // The direction Sai asked for this turn — or, when this message answers the
+  // assistant's own question ("like next available slot"), the direction of
+  // the request that question was about ("a little later").
+  const previousAsk = answeringQuestion ? [...history].reverse().find((h) => h.role === 'user')?.content : undefined;
+  const turnDirection = requestedDirection(userMessage) ?? (previousAsk ? requestedDirection(previousAsk) : null);
+  if (turnRoute && answeringQuestion && previousAsk) {
+    // Route the answer together with the request it answers: "like next
+    // available slot" alone says nothing; with "move the career fair a little
+    // later" before it, it's a move — focused prompt, default model, early exit.
+    turnRoute = route(`${previousAsk}. ${userMessage}`, today);
   }
   if (turnRoute && turnRoute.source === 'fallback' && backend === 'anthropic') {
-    const family = await classifyIntent(userMessage);
+    const family = await classifyIntent(previousAsk ? `${previousAsk}. ${userMessage}` : userMessage);
     if (family && family !== 'general') turnRoute = routeFor([family], userMessage, today, 'model');
   }
   if (turnRoute) {
@@ -1059,7 +1069,7 @@ async function runAgentTurnInner(
         // — the validator had nothing to refuse — just not what Sai said. When
         // the message names one direction, a move the other way is not filed;
         // the model is told to explain the conflict and offer the alternative.
-        const wanted = requestedDirection(userMessage);
+        const wanted = turnDirection;
         const asked = result.diff.changes.filter((c) => c.knock_on !== true && c.before && c.after);
         const wrongWay =
           wanted !== null &&
@@ -1072,11 +1082,15 @@ async function runAgentTurnInner(
               call,
               `${name} was NOT applied: Sai asked for ${wanted}, but this moves ${c.title} ${wanted === 'later' ? 'EARLIER' : 'LATER'} ` +
                 `(${fmt12(c.before!.starts_at)} → ${fmt12(c.after!.starts_at)}). Never do the opposite of what he asked. ` +
-                `If ${wanted} doesn't work, tell him plainly what's in the way and ask whether he wants the alternative.`,
+                `If ${wanted} doesn't work, tell him plainly what's in the way (name it and its time) and ask whether he wants the alternative.`,
             ),
           );
           seenMutations.delete(fingerprint);
           needsModel = true;
+          // A call that contradicts the request is a failed call, like a
+          // schema error: the stronger model takes the retry. (Haiku, told
+          // "later", once answered that there was no room later — there was.)
+          escalated = true;
           continue;
         }
 
@@ -1142,7 +1156,15 @@ async function runAgentTurnInner(
             call,
             settled.status === 'approved'
               ? `Done: ${result.diff.summary}. It is on the calendar now.`
-              : `Filed for Sai to approve: ${result.diff.summary}.`,
+              : (() => {
+                  // Say what really happened. "Filed" for a change the
+                  // validator REFUSED once made the model tell Sai it was
+                  // filed — it wasn't; nothing had changed.
+                  const block = (settled.conflicts as Conflict[]).find((c) => severityOf(c) === 'blocking');
+                  return block
+                    ? `REFUSED: ${describeConflict(block)}. Nothing changed. Try a time that fits, or tell Sai plainly what's in the way.`
+                    : `Filed for Sai to approve: ${result.diff.summary}.`;
+                })(),
           ),
         );
 

@@ -246,7 +246,30 @@ describe('ending the turn early', () => {
     expect(db.select().from(schema.event).all().find((e) => e.id === 'gym1')!.starts_at).toBe(`${tomorrow}T16:00`);
     const toolMsg = seen[1]!.messages.find((m) => m.role === 'tool')!;
     expect(toolMsg.content).toContain('NOT applied');
+    expect(seen[1]!.tier).toBe('escalated'); // the retry goes to the stronger model
     expect(reply).toContain('want it earlier instead?');
+  });
+
+  test('the direction carries over when he is answering the assistant\'s own question', async () => {
+    // Live: "a little later" → "how much of a break?" → "like next available
+    // slot" → moved EARLIER, because the answer itself names no direction.
+    db.insert(schema.chatMessage)
+      .values([
+        { id: 'm1', proposal_id: null, role: 'user', content: 'move the gym tomorrow a little later', created_at: `${T}T08:00` },
+        { id: 'm2', proposal_id: null, role: 'assistant', content: 'How much later — 15 minutes, 30?', created_at: `${T}T08:00` },
+      ])
+      .run();
+    const wrong: ChatCompletionResult = {
+      message: {
+        content: '',
+        tool_calls: [{ id: 'w2', type: 'function', function: { name: 'shift_events', arguments: JSON.stringify({ scope: 'single', date: tomorrow, event_id: 'gym1', expect_title: 'Gym', delta_minutes: -45 }) } }],
+      },
+    };
+    const { chat, seen } = counting([wrong, { message: { content: 'The next slot later is after your study group — want 9 PM?' } }]);
+    const settle = async (p: ProposalRow) => ({ ...p, status: 'approved' as const });
+    const { proposals } = await runAgentTurn(db, 'like the next available slot', { chat, settle, fastPath: false });
+    expect(proposals).toHaveLength(0);
+    expect(seen[1]!.messages.find((m) => m.role === 'tool')!.content).toContain('NOT applied');
   });
 
   test('the same move in the direction he asked goes through', async () => {
