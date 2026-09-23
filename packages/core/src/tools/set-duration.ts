@@ -8,6 +8,11 @@
  * are 60. This sets the length of EVERY same-titled block — both recurring series
  * and any moved one-off overrides — in one call, keeping each block's start and
  * trimming/extending its end.
+ *
+ * A longer block MAKES ROOM like any placement (see cascade.ts): each resized
+ * block stays anchored at its start, movable things its new end runs into are
+ * pushed later, and running onto a class is refused. PINNED blocks are never
+ * resized (I4).
  */
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
@@ -16,7 +21,8 @@ import { severityOf, titlesMatch } from '../types';
 import { getDb, schema } from '../db/client';
 import { getInstances, getSemester } from '../schedule';
 import { buildValidation } from '../proposals';
-import { addDaysWall, addMinutesWall, durationMinutes, todayInTz } from '../time';
+import { makeRoom, commitKnockOns } from '../cascade';
+import { addMinutesWall, durationMinutes, todayInTz } from '../time';
 
 const argsSchema = z.object({
   event_id: z.string().describe('Id of ANY one block of the thing to resize, from the schedule table.'),
@@ -64,10 +70,12 @@ async function run(args: SetDurationArgs, mode: ToolMode): Promise<ToolResult> {
     ]);
   }
 
-  // Diff from the RENDERED near-term instances that change length, so the card
-  // shows real days; the commit sets the length on every row (all weeks).
+  // Diff from the RENDERED instances that change length, today through the end
+  // of the semester. The commit sets the length on every row (all weeks), so
+  // every upcoming day it touches has to make room and be validated — a block
+  // that lands on a class in week 9 is as refused as one that does tomorrow.
   const anchor = todayInTz(sem.timezone) < sem.start_date ? sem.start_date : todayInTz(sem.timezone);
-  const insts = getInstances(db, anchor, addDaysWall(anchor, 14)).filter(
+  const insts = getInstances(db, anchor, sem.end_date).filter(
     (i) => titlesMatch(row.title, i.title) && !i.pinned && durationMinutes(i.starts_at, i.ends_at) !== args.duration_minutes,
   );
   const changes: EventChange[] = insts.map((i) => ({
@@ -80,23 +88,32 @@ async function run(args: SetDurationArgs, mode: ToolMode): Promise<ToolResult> {
     before: { starts_at: i.starts_at, ends_at: i.ends_at },
     after: { starts_at: i.starts_at, ends_at: addMinutesWall(i.starts_at, args.duration_minutes) },
   }));
-  const outcome = buildValidation(db, changes);
+  // Each resized block is anchored where it starts; whatever its new end runs
+  // into moves later, and a class in the way refuses the whole resize.
+  const room = makeRoom(db, changes);
+  const outcome = buildValidation(db, room.changes);
+  const conflicts = [...room.conflicts, ...outcome.conflicts];
 
+  const pushed = room.knockOns.length;
   const diff = {
     summary: `${row.title} → ${args.duration_minutes} min`,
-    detail: `every ${row.title} set to ${args.duration_minutes} minutes`,
-    changes,
+    detail:
+      `every ${row.title} set to ${args.duration_minutes} minutes` + (pushed > 0 ? ` · ${pushed} moved to make room` : ''),
+    changes: room.changes,
     unchanged_pinned: outcome.unchanged_pinned,
   };
-  if (mode === 'dry') return { diff, conflicts: outcome.conflicts };
-  if (outcome.conflicts.some((c) => severityOf(c) === 'blocking')) return { diff, conflicts: outcome.conflicts };
+  if (mode === 'dry') return { diff, conflicts };
+  if (conflicts.some((c) => severityOf(c) === 'blocking')) return { diff, conflicts };
 
   db.transaction((tx) => {
     for (const e of toUpdate) {
       tx.update(schema.event).set({ ends_at: addMinutesWall(e.starts_at, args.duration_minutes) }).where(eq(schema.event.id, e.id)).run();
     }
+    // …and everything that had to move for it, in the SAME transaction: the
+    // resize and the room it needed land together or not at all.
+    commitKnockOns(tx as never, sem.id, room.knockOns);
   });
-  return { diff, conflicts: outcome.conflicts };
+  return { diff, conflicts };
 }
 
 export const setDurationTool: MutationToolDef<SetDurationArgs> = {
@@ -105,7 +122,8 @@ export const setDurationTool: MutationToolDef<SetDurationArgs> = {
     'Set how LONG every block with a given title is — "make all breakfasts 30 minutes", "make my study blocks an hour". ' +
     'It changes the length of EVERY same-titled block at once (each recurring series and any moved one-off), keeping each ' +
     "block's start time and moving its end. Use this for \"make all X N minutes\"; never say they're already that length " +
-    'without checking — the tool checks every one. Pass event_id + expect_title of any one block + duration_minutes.',
+    'without checking — the tool checks every one. If a longer block runs into something movable, that is pushed later ' +
+    'automatically; running onto a class is refused. Pass event_id + expect_title of any one block + duration_minutes.',
   parameters: z.toJSONSchema(argsSchema) as Record<string, unknown>,
   argsSchema,
   run,

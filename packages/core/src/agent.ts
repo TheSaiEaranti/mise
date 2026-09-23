@@ -492,6 +492,25 @@ export function describeOutcome(proposals: ProposalRow[]): string {
       continue;
     }
 
+    // Same for a length change: it's every block of a kind, every week, and
+    // "Moved Gym to Mon 5 – 7 PM" per occurrence is forty lines about a move that
+    // never happened. One line for the length, then only what moved to make
+    // room, once each (a weekly block pushes the same thing every week).
+    if (p.tool_name === 'set_duration') {
+      const real = diff.changes.filter(isRealChange);
+      const len = diff.summary.split('→')[1]?.trim();
+      if (real.length > 0) bucket.push(len ? `${real[0]!.title} ${pending ? 'becomes' : 'now'} ${len}` : diff.summary);
+      const moved = real
+        .filter((c) => c.knock_on === true && c.after !== null)
+        .map(
+          (c) =>
+            `${pending ? 'Move' : 'Moved'} ${c.title} to ${fmtDateLong(dateOf(c.after!.starts_at), 'EEE')} ` +
+            `${fmtRange12(c.after!.starts_at, c.after!.ends_at)} to make room`,
+        );
+      bucket.push(...new Set(moved));
+      continue;
+    }
+
     for (const ch of diff.changes.filter(isRealChange)) {
       const day = fmtDateLong(ch.instance_date, 'EEE');
       if (!ch.before && ch.after) {
