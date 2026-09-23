@@ -26,13 +26,20 @@ export const DEMO_SEMESTER_ID = 'sem-fall26';
 type Ev = typeof schema.event.$inferInsert;
 type Day = 'MO' | 'TU' | 'WE' | 'TH' | 'FR' | 'SA' | 'SU';
 
-/** Each weekday's gym slot, clear of that day's classes and cook session. */
+/**
+ * Each weekday's gym slot, clear of that day's classes and cook session — and
+ * (except Tuesday) at least an hour after the pinned block the demo's "shift
+ * everything after 3pm tomorrow back an hour" leaves in place, so moving an
+ * hour EARLIER ("back" = earlier) lands clear of it. They also end by 19:30,
+ * so the study group (20:00) can come 30 minutes earlier without landing on
+ * one — the cascade would push whatever it lands on later.
+ */
 const GYM_SLOTS: [Day, string, string, string][] = [
   ['MO', '17:00', '18:30', 'chest-back'],
   ['TU', '17:15', '18:15', 'legs'], // ECO ends 17:00, cook at 18:30
   ['WE', '17:00', '18:30', 'legs'],
-  ['TH', '17:30', '19:00', 'shoulders-arms'],
-  ['FR', '16:00', '17:30', 'chest-back'],
+  ['TH', '18:00', '19:30', 'shoulders-arms'], // an hour after ECO ends at 17:00
+  ['FR', '16:30', '18:00', 'chest-back'],
   ['SA', '17:30', '19:00', 'legs'],
   ['SU', '16:30', '18:00', 'shoulders-arms'], // cook at 18:00
 ];
@@ -148,8 +155,9 @@ export function seedDemoSemester(db: DB, today: string): DemoFixture {
   // other day a review session for it stands in.
   const tomorrowCode = weekdayCode(studyGroup);
   if (tomorrowCode !== 'TU' && tomorrowCode !== 'TH') {
-    // After 3pm, clear of Mon/Wed's SDS class (ends 15:30) and before the gym.
-    const [rs, re] = tomorrowCode === 'MO' || tomorrowCode === 'WE' ? ['15:40', '16:30'] : ['15:00', '15:50'];
+    // After 3pm, clear of Mon/Wed's SDS class (ends 15:30), and ending an hour
+    // before the gym so the gym can move an hour earlier.
+    const [rs, re] = tomorrowCode === 'MO' || tomorrowCode === 'WE' ? ['15:30', '16:00'] : ['15:00', '15:30'];
     rows.push({
       id: 'cls-eco304-review',
       semester_id: DEMO_SEMESTER_ID,
@@ -168,7 +176,7 @@ export function seedDemoSemester(db: DB, today: string): DemoFixture {
   }
   const advising = addDaysWall(today, 2);
   const careerFair = firstOnOrAfter(addDaysWall(today, 3), 'TU');
-  oneOff('evt-study', 'Study group — CS 331', 'personal', studyGroup, '19:30', '21:00', 'PCL 3.114');
+  oneOff('evt-study', 'Study group — CS 331', 'personal', studyGroup, '20:00', '21:30', 'PCL 3.114');
   oneOff('evt-advising', 'Advising appointment', 'personal', advising, '13:00', '13:30', 'GDC 1.302');
   oneOff('evt-career-fair', 'Career fair', 'personal', careerFair, '13:00', '14:30', 'Gregory Gym');
 

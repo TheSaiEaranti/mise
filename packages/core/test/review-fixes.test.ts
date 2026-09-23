@@ -132,7 +132,7 @@ describe('hidden tools are unreachable from the model (I1/I4)', () => {
 describe('duplicate tool_calls in one response (I2)', () => {
   test('two identical shift_events calls yield exactly ONE proposal', async () => {
     const args = { scope: 'day', date: '2026-09-08', delta_minutes: 60 };
-    const { proposals } = await runAgentTurn(db, 'push tuesday back an hour', {
+    const { proposals } = await runAgentTurn(db, 'push tuesday an hour later', {
       chat: fakeChatWith([call('shift_events', args), call('shift_events', args)]),
     });
 
@@ -351,7 +351,7 @@ describe('compound requests and no-op moves', () => {
     // the friends block did not exist yet, and nothing would move.
     const applied: string[] = [];
 
-    const { proposals } = await runAgentTurn(db, 'friends over at 8, and push the cook session back', {
+    const { proposals } = await runAgentTurn(db, 'friends over at 8, and push the cook session later', {
       chat: (() => {
         let n = 0;
         return async () => {

@@ -175,12 +175,15 @@ function isComplex(message: string, families: Family[]): boolean {
  */
 export function requestedDirection(message: string): 'later' | 'earlier' | null {
   const m = normalize(message);
-  // A move verb and "back" / "up" in the same clause ("shift everything after
-  // 3pm tomorrow back an hour", "move my gym up an hour") — not "chest and back".
+  // Sai's convention: "back" is EARLIER, always — "shift everything after 3pm
+  // tomorrow back an hour" and "push my gym back 30" both move toward the
+  // morning. Only "later", "delay", "postpone" (and a bare "push") are later.
+  // A move verb and "back" / "up" in the same clause — not "chest and back".
   // "back to 5pm" is a return, which can go either way — it doesn't count.
   const mm = m.replace(/\bback to\b/g, 'to');
-  const later = /\b(?:later|delay|postpone)\b|\b(?:push|shift|move|bump|slide)\b[^.,;!?]*\bback\b|\bpush(?:ed)?\b/.test(mm);
-  const earlier = /\b(?:earlier|sooner)\b|\b(?:move|bump|shift|pull|push)\b[^.,;!?]*\bup\b|\bpull (?:it |them |\w+ )?in\b|\bbring (?:it |them |\w+ )?forward\b/.test(mm);
+  const backOrUp = /\b(?:push|shift|move|bump|slide|pull|set)\b[^.,;!?]*\b(?:back|up)\b/.test(mm);
+  const later = /\b(?:later|delay|postpone)\b/.test(mm) || (!backOrUp && /\bpush(?:ed)?\b/.test(mm));
+  const earlier = backOrUp || /\b(?:earlier|sooner)\b|\bpull (?:it |them |\w+ )?in\b|\bbring (?:it |them |\w+ )?forward\b/.test(mm);
   if (later === earlier) return null;
   return later ? 'later' : 'earlier';
 }

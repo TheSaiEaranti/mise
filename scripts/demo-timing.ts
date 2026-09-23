@@ -23,7 +23,7 @@ if (opt('--now')) process.env.MISE_NOW = opt('--now');
 
 const { resetDbForTests, schema } = await import('../packages/core/src/db/client');
 const { getInstances } = await import('../packages/core/src/schedule');
-const { addDaysWall, todayInTz, weekdayCode } = await import('../packages/core/src/time');
+const { addDaysWall, addMinutesWall, todayInTz, weekdayCode } = await import('../packages/core/src/time');
 const { warmAnthropicCache } = await import('../packages/core/src/anthropic');
 const { warmupPrefixes } = await import('../packages/core/src/agent');
 const { activeChatBackend } = await import('../packages/core/src/claude-cli');
@@ -97,6 +97,7 @@ for (let r = 0; r < ROUNDS; r++) {
   seedDemoSemester(dbRef, today);
   const pinnedTitle = /ECO 304K/;
   const pinnedBefore = start(tomorrow, pinnedTitle);
+  const gymBefore = start(tomorrow, /^Gym/);
 
   const s1 = await streamed('move my gym block to 6pm');
   add('1 move gym to 6pm · total', s1.total);
@@ -105,6 +106,9 @@ for (let r = 0; r < ROUNDS; r++) {
   const s2 = await streamed('shift everything after 3pm tomorrow back an hour');
   add('2 shift after 3pm tmrw · total', s2.total);
   if (start(tomorrow, pinnedTitle) !== pinnedBefore) problems.push(`r${r} step 2: the pinned class moved`);
+  // "back" is earlier, always: tomorrow's gym goes exactly an hour earlier.
+  const gymWant = gymBefore && addMinutesWall(`${tomorrow}T${gymBefore}`, -60).slice(11);
+  if (start(tomorrow, /^Gym/) !== gymWant) problems.push(`r${r} step 2: tomorrow's gym ${gymBefore} → ${start(tomorrow, /^Gym/)}, want ${gymWant}`);
 
   const s3 = await streamed('no gym on Fridays');
   add('3 no gym on Fridays · first status', s3.first_status);

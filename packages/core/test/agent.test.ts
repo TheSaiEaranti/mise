@@ -152,7 +152,7 @@ describe('runAgentTurn', () => {
       ),
       textResponse('Shifting tomorrow by an hour.'),
     ]);
-    const { reply, proposals } = await runAgentTurn(db, 'push everything tomorrow back an hour', { chat });
+    const { reply, proposals } = await runAgentTurn(db, 'push everything tomorrow an hour later', { chat });
 
     // One proposal. The loop runs a second round so the model can answer after
     // its change lands (that is what lets it finish a compound request).

@@ -40,7 +40,8 @@ export const STORY: Step[] = [
     showDays: ['TOMORROW'],
     check: (db, t) => {
       const tm = addDaysWall(t, 1);
-      return time(db, tm, /ECO 304K/) === '15:30' && time(db, tm, /^Gym/) === '18:30' && time(db, tm, /Study group/) === '20:30'
+      // "back" = earlier: gym 6 → 5 PM (right as ECO ends), study 8 → 7 PM.
+      return time(db, tm, /ECO 304K/) === '15:30' && time(db, tm, /^Gym/) === '17:00' && time(db, tm, /Study group/) === '19:00'
         ? true
         : `eco ${time(db, tm, /ECO 304K/)}, gym ${time(db, tm, /^Gym/)}, study ${time(db, tm, /Study group/)}`;
     },

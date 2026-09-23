@@ -55,7 +55,13 @@ describe('router', () => {
 
   test('reads which way Sai asked for something to move — only when unambiguous', () => {
     expect(requestedDirection('move the career fiar a little later, i want a break between classes')).toBe('later');
-    expect(requestedDirection('shift everything after 3pm tomorrow back an hour')).toBe('later');
+    // "back" is earlier, always (Sai's convention); a bare "push" is later.
+    expect(requestedDirection('shift everything after 3pm tomorrow back an hour')).toBe('earlier');
+    expect(requestedDirection('push my gym back 30 minutes')).toBe('earlier');
+    expect(requestedDirection("push tomorrow's study group back 30 min")).toBe('earlier');
+    expect(requestedDirection('push the gym an hour')).toBe('later');
+    expect(requestedDirection('push my gym 30 minutes later')).toBe('later');
+    expect(requestedDirection('delay the cook session')).toBe('later');
     expect(requestedDirection('move my gym up an hour')).toBe('earlier');
     expect(requestedDirection('move my cook session on tuesday 30 minutes earlier')).toBe('earlier');
     for (const m of ['move gym later and cook earlier', 'move my gym forward 30 min', 'tuesday is chest and back', 'move my gym back to 5pm', 'move my gym to 6pm']) {
@@ -98,11 +104,14 @@ describe('fast-path parser', () => {
     expect(parseFastIntent('move my gym block to 6pm')).toEqual({ kind: 'time', target: 'gym', day: null, time: '18:00' });
     expect(parseFastIntent("move tomorrow's gym to 7:30pm")).toEqual({ kind: 'time', target: 'gym', day: 'tomorrow', time: '19:30' });
     expect(parseFastIntent("move friday's gym to saturday")).toEqual({ kind: 'day', target: 'gym', day: 'friday', toDay: 'saturday' });
-    expect(parseFastIntent('push my gym back 30 minutes')).toEqual({ kind: 'delta', target: 'gym', day: null, minutes: 30 });
+    expect(parseFastIntent('push my gym back 30 minutes')).toEqual({ kind: 'delta', target: 'gym', day: null, minutes: -30 });
+    expect(parseFastIntent('push my gym 30 minutes later')).toEqual({ kind: 'delta', target: 'gym', day: null, minutes: 30 });
+    expect(parseFastIntent('move my gym 30 minutes back')).toEqual({ kind: 'delta', target: 'gym', day: null, minutes: -30 });
     expect(parseFastIntent('move my cook session on tuesday 30 minutes earlier')).toEqual({ kind: 'delta', target: 'cook', day: 'tuesday', minutes: -30 });
-    expect(parseFastIntent('push the gym back an hour')).toEqual({ kind: 'delta', target: 'gym', day: null, minutes: 60 });
+    expect(parseFastIntent('push the gym back an hour')).toEqual({ kind: 'delta', target: 'gym', day: null, minutes: -60 });
     expect(parseFastIntent('Please move my gym to 18:00.')).toEqual({ kind: 'time', target: 'gym', day: null, time: '18:00' });
-    expect(parseFastIntent('shift everything after 3pm tomorrow back an hour')).toEqual({ kind: 'bulk', day: 'tomorrow', afterTime: '15:00', minutes: 60 });
+    expect(parseFastIntent('shift everything after 3pm tomorrow back an hour')).toEqual({ kind: 'bulk', day: 'tomorrow', afterTime: '15:00', minutes: -60 });
+    expect(parseFastIntent('shift everything after 3pm tomorrow later by an hour')).toEqual({ kind: 'bulk', day: 'tomorrow', afterTime: '15:00', minutes: 60 });
   });
 
   test('falls through on anything ambiguous', () => {
@@ -168,7 +177,7 @@ describe('fast-path resolution', () => {
   test('no match today, a pinned class, or a move across midnight → the model', () => {
     expect(resolveFastCall(db, parseFastIntent('move my gym to 6pm')!, T)).toBeNull(); // no gym today
     expect(resolveFastCall(db, parseFastIntent('move tomorrow\'s cs 331 to 3pm')!, T)).toBeNull(); // pinned
-    expect(resolveFastCall(db, parseFastIntent("push tomorrow's study group back 4 hours")!, T)).toBeNull(); // past midnight
+    expect(resolveFastCall(db, parseFastIntent("push tomorrow's study group 4 hours later")!, T)).toBeNull(); // past midnight
   });
 
   test('a fast-path turn never calls the model and still files + commits a Proposal row', async () => {
@@ -225,7 +234,7 @@ describe('ending the turn early', () => {
   test('a compound turn is not ended early: its second request may need the first committed', async () => {
     const { chat, seen } = counting([shift('a'), { message: { content: '' } }]);
     const settle = async (p: ProposalRow) => ({ ...p, status: 'approved' as const });
-    await runAgentTurn(db, 'dinner with sam at 8 tomorrow, push the gym back an hour', { chat, settle, fastPath: false });
+    await runAgentTurn(db, 'dinner with sam at 8 tomorrow, push the gym an hour later', { chat, settle, fastPath: false });
     expect(seen).toHaveLength(2);
   });
 
@@ -277,6 +286,19 @@ describe('ending the turn early', () => {
     const settle = async (p: ProposalRow) => ({ ...p, status: 'approved' as const });
     const { proposals } = await runAgentTurn(db, 'move the gym tomorrow a little later', { chat, settle, fastPath: false });
     expect(proposals.map((p) => p.tool_name)).toEqual(['shift_events']);
+  });
+
+  test('"back" means earlier: a +60 answer to "back an hour" is refused, and the fast path shifts −60', async () => {
+    // The demo bug: "shift everything after 3pm tomorrow back an hour" moved
+    // everything an hour LATER. For Sai "back" is earlier, always.
+    const { chat, seen } = counting([shift('b'), { message: { content: 'Earlier, then?' } }]);
+    const settle = async (p: ProposalRow) => ({ ...p, status: 'approved' as const });
+    const r1 = await runAgentTurn(db, 'the gym tomorrow, push it back an hour', { chat, settle, fastPath: false });
+    expect(r1.proposals).toHaveLength(0);
+    expect(seen[1]!.messages.find((m) => m.role === 'tool')!.content).toContain('NOT applied');
+
+    const call = resolveFastCall(db, parseFastIntent('shift everything after 3pm tomorrow back an hour')!, T);
+    expect(call?.args).toMatchObject({ scope: 'day', date: tomorrow, after_time: '15:00', delta_minutes: -60 });
   });
 
   test('without a commit policy nothing is final, so the loop behaves as before', async () => {

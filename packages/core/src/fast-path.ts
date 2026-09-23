@@ -3,7 +3,8 @@
  *
  *   "move <block> to <time>"        → set_event_time (keeps its length)
  *   "move <block> to <day>"         → shift_events single, ±whole days
- *   "push <block> back/up N min"    → shift_events single, ±N minutes
+ *   "push <block> back/up N min"    → shift_events single, −N minutes ("back" is
+ *                                     earlier, always — Sai's convention)
  *   "move <block> N minutes later"  (with "tomorrow's", "monday's", "on friday"…)
  *   "shift everything [after <time>] <day> back/later/earlier N"
  *                                   → shift_events day scope (pinned blocks stay;
@@ -117,7 +118,7 @@ export function parseFastIntent(message: string): FastIntent | null {
     const mins = toMinutes(bulk[3]!, bulk[4]!);
     if (mins === null || mins <= 0 || mins > 720) return null;
     const dir = bulk[2]!;
-    return { kind: 'bulk', day: dm[1]!, afterTime, minutes: dir === 'earlier' || dir === 'up' ? -mins : mins };
+    return { kind: 'bulk', day: dm[1]!, afterTime, minutes: dir === 'later' ? mins : -mins };
   }
 
   let r = new RegExp(`^${VERB} (.+?) (?:to|at) ${TIME}$`).exec(m);
@@ -145,7 +146,7 @@ export function parseFastIntent(message: string): FastIntent | null {
     const mins = toMinutes(n, unit);
     const st = splitTarget(target);
     if (mins === null || mins <= 0 || mins > 720 || !st) return null;
-    return { kind: 'delta', ...st, minutes: dir === 'earlier' || dir === 'up' ? -mins : mins };
+    return { kind: 'delta', ...st, minutes: dir === 'later' ? mins : -mins };
   }
   return null;
 }

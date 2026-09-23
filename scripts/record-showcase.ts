@@ -230,12 +230,12 @@ await caption(page, '2', 'A bulk edit — pinned classes must not move');
 await pause(page, 1000);
 await typeCommand(page, 'shift everything after 3pm tomorrow back an hour');
 await point(page, block('ECO 304K', TOMORROW), 'ECO 304K · 3:30 PM · PINNED', 'after 3 PM — but a class can never move', 3000);
-await point(page, block('Gym', TOMORROW, '17:30'), 'Gym 5:30 PM', 'should move +1 hour', 1900);
-await point(page, block('Study group', TOMORROW, '19:30'), 'Study group 7:30 PM', 'should move +1 hour', 1900);
+await point(page, block('Gym', TOMORROW, '18:00'), 'Gym 6 PM', '"back" = an hour earlier', 1900);
+await point(page, block('Study group', TOMORROW, '20:00'), 'Study group 8 PM', 'should move an hour earlier', 1900);
 await send(page);
 await point(page, block('ECO 304K', TOMORROW), 'Still 3:30 PM ✓', 'the validator refuses any change that moves a pinned event', 3000);
-await point(page, block('Gym', TOMORROW, '18:30'), '+1 hour', '', 1500);
-await point(page, block('Study group', TOMORROW, '20:30'), '+1 hour', '', 1500);
+await point(page, block('Gym', TOMORROW, '17:00'), 'Gym now 5 PM', 'an hour earlier — right as the class ends', 1900);
+await point(page, block('Study group', TOMORROW, '19:00'), 'Study group now 7 PM', '', 1500);
 await still(page, '2-pinned');
 await clear(page);
 
@@ -243,7 +243,7 @@ await clear(page);
 await caption(page, '3', 'Change every week of the semester in one sentence');
 await pause(page, 1000);
 await typeCommand(page, 'no gym on Fridays');
-const fridayGym = await point(page, block('Gym', FRIDAY, '16:00'), 'Friday gym', 'a weekly series — every Friday until December', 2600);
+const fridayGym = await point(page, block('Gym', FRIDAY, '16:30'), 'Friday gym', 'a weekly series — every Friday until December', 2600);
 await send(page);
 await pointAt(page, fridayGym, 'Gone this Friday…', '', 2000);
 await clear(page);
@@ -264,7 +264,7 @@ await typeCommand(page, 'make my gym sessions 2 hours long');
 await point(page, block('Gym', TODAY, '19:00'), 'Gym · 90 min', '', 1800);
 await send(page);
 await point(page, block('Gym', TODAY, '19:00'), '2 hours', 'and every other gym block, every week', 2400);
-await point(page, block('Gym', TOMORROW, '18:30'), '2 hours', '', 1600);
+await point(page, block('Gym', TOMORROW, '17:00'), '2 hours', '', 1600);
 await clear(page);
 
 // ⑤ A cancel asks first -------------------------------------------------------

@@ -58,8 +58,9 @@ card with **Undo**.
 *~10 ms. No model call.*
 
 Point at **tomorrow's ECO 304K** (a class, drawn recessed): it is still at its
-time. Everything movable after 3 PM slid an hour later; the diff card lists the
-class under "unchanged".
+time. Everything movable after 3 PM slid an hour **earlier** ("back" always
+means earlier here): the gym 6 → 5 PM, starting right as the class ends, and the
+study group 8 → 7 PM. The diff card lists the class under "unchanged".
 
 Say: "Pinned events can't move — and that isn't the prompt asking nicely. The
 validator refuses any change that moves one, whoever proposes it." (Invariant

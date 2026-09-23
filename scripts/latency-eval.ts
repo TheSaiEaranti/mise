@@ -125,10 +125,10 @@ const CASES: Case[] = [
       all(
         expect(start(gym(db, D.TH)[0]) === '19:00', `tomorrow's gym at ${start(gym(db, D.TH)[0])}, want 19:00`),
         expect(eco(db, D.TH) === '15:30', 'pinned ECO moved'),
-        sameNextWeek(db, D.TH2, gym, '17:30', 'Thursday gym'),
+        sameNextWeek(db, D.TH2, gym, '18:00', 'Thursday gym'),
       ),
     oracle: () => ({ tool: 'set_event_time', args: { event_id: 'gym-th', expect_title: 'Gym', date: D.TH, start_time: '19:00', end_time: '20:30' } }),
-    wrong: [{ tool: 'shift_events', args: { scope: 'series', date: D.TH, event_id: 'gym-th', expect_title: 'Gym', delta_minutes: 90 } }],
+    wrong: [{ tool: 'shift_events', args: { scope: 'series', date: D.TH, event_id: 'gym-th', expect_title: 'Gym', delta_minutes: 60 } }],
   },
   {
     id: 'c03',
@@ -137,11 +137,15 @@ const CASES: Case[] = [
     tools: ['shift_events', 'set_event_time'],
     check: ({ db }) =>
       all(
-        expect(start(gym(db, D.T)[0]) === '17:30', `today's gym at ${start(gym(db, D.T)[0])}, want 17:30`),
+        // "back" is earlier, always (Sai's convention).
+        expect(start(gym(db, D.T)[0]) === '16:30', `today's gym at ${start(gym(db, D.T)[0])}, want 16:30`),
         sameNextWeek(db, D.WE2, gym, '17:00', 'Wednesday gym'),
       ),
-    oracle: () => ({ tool: 'shift_events', args: { scope: 'single', date: D.T, event_id: 'gym-we', expect_title: 'Gym', delta_minutes: 30 } }),
-    wrong: [{ tool: 'shift_events', args: { scope: 'series', date: D.T, event_id: 'gym-we', expect_title: 'Gym', delta_minutes: 30 } }],
+    oracle: () => ({ tool: 'shift_events', args: { scope: 'single', date: D.T, event_id: 'gym-we', expect_title: 'Gym', delta_minutes: -30 } }),
+    wrong: [
+      { tool: 'shift_events', args: { scope: 'series', date: D.T, event_id: 'gym-we', expect_title: 'Gym', delta_minutes: -30 } },
+      { tool: 'shift_events', args: { scope: 'single', date: D.T, event_id: 'gym-we', expect_title: 'Gym', delta_minutes: 30 } },
+    ],
   },
   {
     id: 'c04',
@@ -152,7 +156,7 @@ const CASES: Case[] = [
       all(
         expect(gym(db, D.FR).length === 0, 'Friday still has gym'),
         expect(gym(db, D.SA).length === 1, `Saturday has ${gym(db, D.SA).length} gym blocks, want 1`),
-        sameNextWeek(db, D.FR2, gym, '16:00', 'Friday gym'),
+        sameNextWeek(db, D.FR2, gym, '16:30', 'Friday gym'),
         expect(gym(db, D.SA2).length === 0, 'next Saturday got a gym too — only this week was asked'),
         expect(start(titled(db, D.FR, /Advising/)[0]) === '13:00', 'the advising appointment moved too'),
       ),
@@ -184,11 +188,13 @@ const CASES: Case[] = [
       all(
         expect(eco(db, D.TH) === '15:30', `pinned ECO 304K at ${eco(db, D.TH)} — it must not move`),
         expect(start(titled(db, D.TH, /CS 331/)[0]) === '11:00', 'pinned CS 331 moved'),
-        expect(start(gym(db, D.TH)[0]) === '18:30', `gym at ${start(gym(db, D.TH)[0])}, want 18:30`),
-        expect(start(titled(db, D.TH, /Study group/)[0]) === '20:30', `study group at ${start(titled(db, D.TH, /Study group/)[0])}, want 20:30`),
-        sameNextWeek(db, D.TH2, gym, '17:30', 'Thursday gym'),
+        // "back" is earlier: the gym lands right after ECO ends at 17:00.
+        expect(start(gym(db, D.TH)[0]) === '17:00', `gym at ${start(gym(db, D.TH)[0])}, want 17:00`),
+        expect(start(titled(db, D.TH, /Study group/)[0]) === '19:00', `study group at ${start(titled(db, D.TH, /Study group/)[0])}, want 19:00`),
+        sameNextWeek(db, D.TH2, gym, '18:00', 'Thursday gym'),
       ),
-    oracle: () => ({ tool: 'shift_events', args: { scope: 'day', date: D.TH, after_time: '15:00', delta_minutes: 60 } }),
+    oracle: () => ({ tool: 'shift_events', args: { scope: 'day', date: D.TH, after_time: '15:00', delta_minutes: -60 } }),
+    wrong: [{ tool: 'shift_events', args: { scope: 'day', date: D.TH, after_time: '15:00', delta_minutes: 60 } }],
   },
   {
     id: 'c07',
@@ -272,7 +278,7 @@ const CASES: Case[] = [
     kind: 'question',
     message: 'what time is my gym tomorrow?',
     tools: [],
-    check: ({ reply }) => expect(/5:30/.test(reply), `reply doesn't say 5:30: "${reply.slice(0, 80)}"`),
+    check: ({ reply }) => expect(/\b6(?::00)?\s*(?:PM|p\.?m)/i.test(reply), `reply doesn't say 6 PM: "${reply.slice(0, 80)}"`),
   },
   {
     id: 'c14',
@@ -338,12 +344,15 @@ const CASES: Case[] = [
     check: ({ db }) => {
       const s = start(titled(db, D.TH, /Study group/)[0]);
       return all(
-        expect(s === '20:00', `study group at ${s}, want 20:00`),
-        expect(start(gym(db, D.TH)[0]) === '17:30', "tomorrow's gym moved too"),
+        expect(s === '19:30', `study group at ${s}, want 19:30`),
+        expect(start(gym(db, D.TH)[0]) === '18:00', "tomorrow's gym moved too"),
       );
     },
-    oracle: () => ({ tool: 'shift_events', args: { scope: 'single', date: D.TH, event_id: 'evt-study', expect_title: 'Study group — CS 331', delta_minutes: 30 } }),
-    wrong: [{ tool: 'shift_events', args: { scope: 'day', date: D.TH, delta_minutes: 30 } }],
+    oracle: () => ({ tool: 'shift_events', args: { scope: 'single', date: D.TH, event_id: 'evt-study', expect_title: 'Study group — CS 331', delta_minutes: -30 } }),
+    wrong: [
+      { tool: 'shift_events', args: { scope: 'day', date: D.TH, delta_minutes: -30 } },
+      { tool: 'shift_events', args: { scope: 'single', date: D.TH, event_id: 'evt-study', expect_title: 'Study group — CS 331', delta_minutes: 30 } },
+    ],
   },
   {
     id: 'c20',

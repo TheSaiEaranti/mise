@@ -51,7 +51,7 @@ describe('/api/chat/stream', () => {
     expect(events.filter((e) => e.event === 'status').map((e) => e.data.text)).toContain('Moved');
     const done = events[events.length - 1]!.data;
     expect(done.reply).toContain('Moved Gym');
-    expect(db.select().from(schema.event).all().find((e) => e.id === 'gym1')!.starts_at).toBe(`${tomorrow}T16:30`);
+    expect(db.select().from(schema.event).all().find((e) => e.id === 'gym1')!.starts_at).toBe(`${tomorrow}T15:30`); // "back" = earlier
   });
 
   test('bad bodies are rejected before streaming', async () => {
