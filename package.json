@@ -24,7 +24,10 @@
     "record:demo": "bun run scripts/record-demo.ts",
     "demo:api": "MISE_DB_PATH=data/demo.db bun apps/api/src/index.ts",
     "demo:web": "bun run --cwd apps/web build && bun run --cwd apps/web start",
-    "demo:timing": "bun run scripts/demo-timing.ts"
+    "demo:timing": "bun run scripts/demo-timing.ts",
+    "record:showcase": "bun run scripts/record-showcase.ts",
+    "showcase:dryrun": "bun run scripts/showcase-dryrun.ts",
+    "capture:assets": "bun run scripts/capture-assets.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.2.0",
