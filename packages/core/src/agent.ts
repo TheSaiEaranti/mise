@@ -17,7 +17,8 @@ import type { DB } from './db/client';
 import { schema } from './db/client';
 import { chatCompletion, type ChatMessage, type ToolCall } from './ollama';
 import { activeChatBackend, claudeWithFallback } from './claude-cli';
-import { getModelTool, modelToolNames, modelToolSpecs } from './tools/index';
+import { anthropicWithFallback } from './anthropic';
+import { getModelTool, getTool, modelToolNames, modelToolSpecs } from './tools/index';
 import { createProposal, newId, type ProposalRow } from './proposals';
 import { getInstances, getSemester } from './schedule';
 import { getSplit } from './workouts';
@@ -529,16 +530,18 @@ async function runAgentTurnInner(
   // tool list. Everything after the model call (proposals, undo, replies) is
   // identical: both return the same OpenAI-shaped tool_calls.
   const compact = process.env.MISE_COMPACT === '1';
-  // Claude (via the CLI, with automatic per-call Ollama fallback) unless
-  // MISE_CHAT_BACKEND=ollama, no claude binary resolves, or compact mode is on
-  // — COMPACT is the fine-tuned local model's prompt; shipping it to Claude
-  // would bypass the tuned qwen entirely. The catch below still fires only
-  // when the chosen path is truly down — for the claude backend that means
-  // BOTH backends failed.
-  const useClaude = !deps?.chat && !compact && activeChatBackend() === 'claude';
-  const chat = deps?.chat ?? (useClaude ? claudeWithFallback : chatCompletion);
+  // Backend (see activeChatBackend): the Anthropic API when a key is
+  // configured, else the claude CLI, else Ollama — each with per-call
+  // fallback down that chain. Compact mode always means the fine-tuned local
+  // model: COMPACT is its prompt, and shipping it to Claude would bypass the
+  // tuned qwen entirely. The catch below fires only when the chosen path is
+  // truly down — for the API that means every fallback failed too.
+  const backend = deps?.chat || compact ? null : activeChatBackend();
+  const chat =
+    deps?.chat ??
+    (backend === 'anthropic' ? anthropicWithFallback : backend === 'claude' ? claudeWithFallback : chatCompletion);
   /** Trace label for a round whose backend reported nothing (e.g. it threw). */
-  const chosenBackend = deps?.chat ? 'injected' : useClaude ? 'claude-cli' : 'ollama';
+  const chosenBackend = deps?.chat ? 'injected' : backend === 'anthropic' ? 'anthropic' : backend === 'claude' ? 'claude-cli' : 'ollama';
 
   // Last 6 user/assistant turns BEFORE this message, oldest first. rowid
   // breaks created_at ties (minute precision) in insertion order.
@@ -620,6 +623,22 @@ async function runAgentTurnInner(
    */
   const MAX_SCHEMA_RETRIES = 2;
   const schemaRetries = new Map<string, number>();
+  /**
+   * Model routing (Anthropic backend; other backends ignore the tier): the
+   * default model answers until one of its tool calls fails validation — an
+   * unknown tool, unparseable JSON, arguments the tool's schema rejects — and
+   * from then on this turn runs on the escalated (stronger) model, which sees
+   * the failed call and the error and corrects it. The validator (applyProposal
+   * + validate()) is untouched either way; escalation is about getting a
+   * well-formed call, never about getting past a refusal.
+   */
+  let escalated = false;
+  // The static prompt is one cached block; the per-turn context (Now line,
+  // schedule) comes after the cache breakpoint so it can't invalidate it.
+  const systemBlocks = [
+    { text: SYSTEM_PROMPT, cache: true },
+    { text: context, cache: false },
+  ];
 
   outer: for (let round = 0; round < MAX_ROUNDS; round++) {
     let res;
@@ -628,7 +647,14 @@ async function runAgentTurnInner(
       res = await chat(
         compact
           ? { messages, temperature: 0.1, max_tokens: 512 }
-          : { messages, tools: modelToolSpecs(), tool_choice: 'auto', temperature: 0.1 },
+          : {
+              messages,
+              tools: modelToolSpecs(),
+              tool_choice: 'auto',
+              temperature: 0.1,
+              system_blocks: systemBlocks,
+              tier: escalated ? 'escalated' : 'default',
+            },
       );
     } catch (e) {
       recordRound({
@@ -667,15 +693,24 @@ async function runAgentTurnInner(
     }
 
     // The assistant turn carrying the tool_calls must precede tool replies.
-    messages.push({ role: 'assistant', content: res.message.content ?? '', tool_calls: calls });
+    // Only the calls this round will answer go in it: a tool_use left without
+    // a tool_result is a 400 from the Messages API on the next round.
+    const taken = calls.slice(0, MAX_CALLS_PER_ROUND);
+    messages.push({ role: 'assistant', content: res.message.content ?? '', tool_calls: taken });
+    /** Tools already charged a schema retry this round (parallel calls share one). */
+    const retriedThisRound = new Set<string>();
 
-    for (const call of calls.slice(0, MAX_CALLS_PER_ROUND)) {
+    for (const call of taken) {
       const name = call.function.name;
       // getModelTool, not getTool: tools hidden from the model (setup_semester)
       // must be unreachable from chat, not merely unadvertised. (I1/I4)
       const tool = getModelTool(name);
       if (!tool) {
         // Never guess a tool — tell the model what exists and let it retry.
+        // A truly unknown name is a malformed call → escalate. A tool that
+        // exists but is hidden from the model (setup_semester) was blocked on
+        // purpose; a stronger model wouldn't change that.
+        if (!getTool(name)) escalated = true;
         messages.push(
           toolMsg(call, `Unknown tool "${name}". Available: ${availableToolNames().join(', ')}. Use one of these or answer in plain text.`),
         );
@@ -694,12 +729,19 @@ async function runAgentTurnInner(
       }
 
       if (parseError !== null) {
+        // Counted once per tool per ROUND: three parallel calls with the same
+        // mistake are one mistake, and must not spend the whole budget before
+        // the escalated model has had a round to fix it.
         const used = schemaRetries.get(name) ?? 0;
-        if (used >= MAX_SCHEMA_RETRIES) {
-          reply = `Sorry — I couldn't produce valid arguments for ${name}. Try rephrasing your request.`;
-          break outer;
+        if (!retriedThisRound.has(name)) {
+          if (used >= MAX_SCHEMA_RETRIES) {
+            reply = `Sorry — I couldn't produce valid arguments for ${name}. Try rephrasing your request.`;
+            break outer;
+          }
+          schemaRetries.set(name, used + 1);
+          retriedThisRound.add(name);
         }
-        schemaRetries.set(name, used + 1);
+        escalated = true;
         messages.push(
           toolMsg(call, `Invalid arguments for ${name}: ${parseError}. Call ${name} again with corrected arguments.`),
         );

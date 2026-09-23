@@ -31,5 +31,6 @@ export {
   traceSpan, currentTrace, recentTurnTraces, summarizeTrace,
   type TurnTrace, type RoundTrace, type SpanTrace, type ChatMeta,
 } from './trace';
+export { anthropicModels, anthropicChatCompletion, anthropicWithFallback } from './anthropic';
 export { activeChatBackend, claudeChatCompletion, claudeWithFallback, resolveClaudeBin, ClaudeCliError, type ClaudeErrorKind } from './claude-cli';
 export { constraints, effectiveConstraints, readUserSettings, writeUserSettings, type Constraints } from '@mise/config/settings';

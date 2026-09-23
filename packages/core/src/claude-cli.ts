@@ -31,7 +31,7 @@
  *   resume is unverified (harmless if redundant).
  */
 import { existsSync } from 'node:fs';
-import { chatCompletion, parseToolCallText, type ChatCompletionResult, type ChatMessage } from './ollama';
+import { chatCompletion, parseToolCallText, type ChatCompletionOpts, type ChatCompletionResult, type ChatMessage } from './ollama';
 import type { ChatMeta } from './trace';
 
 /** Why a CLI call failed — the fallback log names this. */
@@ -92,19 +92,35 @@ export function resolveClaudeBin(): string | null {
 
 let warnedNoBinary = false;
 let warnedBadBackendValue = false;
+let warnedNoKey = false;
+
+export type ChatBackend = 'anthropic' | 'claude' | 'ollama';
+
+/** Credentials for the Messages API are in the environment (Bun loads .env). */
+function anthropicKeyPresent(): boolean {
+  return Boolean(process.env.ANTHROPIC_API_KEY?.trim() || process.env.ANTHROPIC_AUTH_TOKEN?.trim());
+}
 
 /**
- * Which backend a turn will use right now. Claude is the default; Ollama when
- * MISE_CHAT_BACKEND=ollama or no binary resolves. Re-evaluated every turn so
- * flipping the env var (or installing the CLI) needs no restart.
+ * Which backend a turn will use right now. MISE_CHAT_BACKEND picks one
+ * explicitly (anthropic | claude | ollama). Unset: the Anthropic API when an
+ * API key is configured, else the claude CLI when it's installed, else Ollama.
+ * Re-evaluated every turn so flipping the env var needs no restart.
  */
-export function activeChatBackend(): 'claude' | 'ollama' {
+export function activeChatBackend(): ChatBackend {
   const wanted = (process.env.MISE_CHAT_BACKEND ?? '').trim().toLowerCase();
   if (wanted === 'ollama') return 'ollama';
-  if (wanted !== '' && wanted !== 'claude' && !warnedBadBackendValue) {
+  if (wanted === 'anthropic' || (wanted === '' && anthropicKeyPresent())) {
+    if (anthropicKeyPresent()) return 'anthropic';
+    if (!warnedNoKey) {
+      warnedNoKey = true;
+      console.warn('[chat] MISE_CHAT_BACKEND=anthropic but ANTHROPIC_API_KEY is not set — trying the claude CLI');
+    }
+  }
+  if (wanted !== '' && wanted !== 'claude' && wanted !== 'anthropic' && !warnedBadBackendValue) {
     // A typo like "olama" silently burning plan usage is the failure mode here.
     warnedBadBackendValue = true;
-    console.warn(`[chat] MISE_CHAT_BACKEND="${process.env.MISE_CHAT_BACKEND}" not recognized (claude|ollama) — defaulting to claude`);
+    console.warn(`[chat] MISE_CHAT_BACKEND="${process.env.MISE_CHAT_BACKEND}" not recognized (anthropic|claude|ollama) — defaulting to claude`);
   }
   if (resolveClaudeBin() !== null) return 'claude';
   if (!warnedNoBinary) {
@@ -399,13 +415,7 @@ async function invokeClaude(bin: string, system: string, prompt: string, resumeI
  * Throws ClaudeCliError (see taxonomy) — callers wanting a guaranteed answer
  * go through claudeWithFallback.
  */
-export async function claudeChatCompletion(opts: {
-  messages: ChatMessage[];
-  tools?: unknown[];
-  tool_choice?: unknown;
-  temperature?: number;
-  max_tokens?: number;
-}): Promise<ChatCompletionResult> {
+export async function claudeChatCompletion(opts: ChatCompletionOpts): Promise<ChatCompletionResult> {
   const bin = resolveClaudeBin();
   if (bin === null) {
     throw new ClaudeCliError('not-installed', 'no claude binary found (PATH, ~/.local/bin/claude, MISE_CLAUDE_BIN)');
@@ -506,13 +516,7 @@ export async function claudeChatCompletion(opts: {
  * catch-and-apologize path fires only when BOTH backends are down, exactly as
  * before this backend existed.
  */
-export async function claudeWithFallback(opts: {
-  messages: ChatMessage[];
-  tools?: unknown[];
-  tool_choice?: unknown;
-  temperature?: number;
-  max_tokens?: number;
-}): Promise<ChatCompletionResult> {
+export async function claudeWithFallback(opts: ChatCompletionOpts): Promise<ChatCompletionResult> {
   try {
     return await claudeChatCompletion(opts);
   } catch (e) {

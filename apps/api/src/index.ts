@@ -2,7 +2,7 @@
  * Server entry: `bun src/index.ts`. Binds 0.0.0.0:3001 — reachable from the
  * MacBook and iPhone over Tailscale, and from nowhere else (SPEC §1).
  */
-import { activeChatBackend, resolveClaudeBin } from '@mise/core';
+import { activeChatBackend, anthropicModels, resolveClaudeBin } from '@mise/core';
 import { app } from './app';
 import { startInternshipPoller } from './lib/internship-poller';
 
@@ -11,10 +11,13 @@ startInternshipPoller();
 // Which model answers chat turns. Resolved per-turn too — this is just the
 // startup receipt (backend can flip via MISE_CHAT_BACKEND without a restart).
 const backend = activeChatBackend();
+const models = anthropicModels();
 console.log(
-  backend === 'claude'
-    ? `[chat] backend: claude CLI (${resolveClaudeBin()}), Ollama fallback`
-    : '[chat] backend: ollama',
+  backend === 'anthropic'
+    ? `[chat] backend: Anthropic API (${models.default}, escalates to ${models.escalated}), CLI/Ollama fallback`
+    : backend === 'claude'
+      ? `[chat] backend: claude CLI (${resolveClaudeBin()}), Ollama fallback`
+      : '[chat] backend: ollama',
 );
 
 export default {

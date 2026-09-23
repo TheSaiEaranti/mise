@@ -1,5 +1,5 @@
 [test]
-# Pin the wall clock for every test run. Many fixtures are written against
-# fixed dates (Sep 7-9 2026), and the tools skip days that are already in the
-# past, so without this the suite starts failing the day those dates pass.
-preload = ["./scripts/test-clock.ts"]
+# Every test run: a frozen clock (fixtures use fixed Sep 2026 dates, and the
+# tools skip days already in the past) and no real model credentials (Bun
+# loads .env for tests too). See scripts/test-setup.ts.
+preload = ["./scripts/test-setup.ts"]

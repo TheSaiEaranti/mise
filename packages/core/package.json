@@ -24,9 +24,10 @@
     "./recipe-import": "./src/recipe-import.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "@date-fns/tz": "^1.2.0",
     "@mise/config": "workspace:*",
     "date-fns": "^4.1.0",
-    "@date-fns/tz": "^1.2.0",
     "drizzle-orm": "^0.39.3",
     "zod": "^4.1.5"
   },

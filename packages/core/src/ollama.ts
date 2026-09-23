@@ -41,6 +41,24 @@ export interface ChatMessage {
   tool_calls?: ToolCall[];
 }
 
+/** What every chat backend accepts. Backends ignore the fields they don't use. */
+export interface ChatCompletionOpts {
+  messages: ChatMessage[];
+  tools?: unknown[];
+  tool_choice?: unknown;
+  temperature?: number;
+  max_tokens?: number;
+  /**
+   * The system prompt as ordered blocks, cacheable ones marked. Only the
+   * Anthropic backend reads this (prompt caching needs the static part split
+   * from the per-turn context); the others read messages[0], which always
+   * carries the same text concatenated.
+   */
+  system_blocks?: { text: string; cache?: boolean }[];
+  /** Anthropic backend: 'escalated' routes the call to the stronger model. */
+  tier?: 'default' | 'escalated';
+}
+
 export interface ChatCompletionResult {
   message: { content: string | null; tool_calls?: ToolCall[] };
   /** Timing/token facts about the call, for the turn trace. Never read by the
@@ -148,14 +166,10 @@ export async function visionCompletion(opts: {
   return content;
 }
 
-export async function chatCompletion(opts: {
-  messages: ChatMessage[];
-  tools?: unknown[];
-  tool_choice?: unknown;
-  temperature?: number;
-  max_tokens?: number;
-}): Promise<ChatCompletionResult> {
+export async function chatCompletion(opts: ChatCompletionOpts): Promise<ChatCompletionResult> {
   const url = `${OLLAMA_URL}/v1/chat/completions`;
+  // Anthropic-only fields stay out of the Ollama request body.
+  const { system_blocks: _blocks, tier: _tier, ...body } = opts;
   let res: Response;
   try {
     res = await fetch(url, {
@@ -163,7 +177,7 @@ export async function chatCompletion(opts: {
       headers: { 'Content-Type': 'application/json' },
       // keep_alive holds the model in memory between turns so an interactive
       // back-and-forth never pays the ~30s cold-load again mid-conversation.
-      body: JSON.stringify({ model: MODEL, keep_alive: '30m', ...opts }),
+      body: JSON.stringify({ model: MODEL, keep_alive: '30m', ...body }),
       // Ollama can wedge — swapping a model in, a bad load — and an un-timed
       // fetch waits forever, so the chat request never returns and the UI just
       // spins. Fail loudly instead: a turn that takes longer than this is

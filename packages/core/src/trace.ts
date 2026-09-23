@@ -41,6 +41,12 @@ export interface ChatMeta {
   /** Set when the primary backend failed and another one answered. */
   fallback_from?: string;
   fallback_reason?: string;
+  /** Anthropic backend: which model tier answered ('escalated' = the stronger model). */
+  tier?: 'default' | 'escalated';
+  /** Anthropic backend: why generation stopped (tool_use, end_turn, max_tokens, refusal). */
+  stop_reason?: string | null;
+  /** Anthropic backend: rounds re-issued because a streamed tool input was unparseable. */
+  json_retries?: number;
 }
 
 export interface RoundTrace {
