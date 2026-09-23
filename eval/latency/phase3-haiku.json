@@ -1,0 +1,5387 @@
+{
+  "summary": {
+    "label": "phase3-haiku",
+    "at": "2026-09-23T07:05:35.887Z",
+    "eval_now": "2026-09-23T09:00",
+    "commands": 22,
+    "reps": 2,
+    "runs": 44,
+    "clean_runs": 44,
+    "errored_runs": 0,
+    "fallback_runs": 0,
+    "fast_path_runs": 16,
+    "escalated_runs": 0,
+    "backends": [
+      "anthropic/claude-haiku-4-5-20251001"
+    ],
+    "p50_ms": 1204.4,
+    "p90_ms": 1769.4,
+    "mean_ms": 1002,
+    "simple_move_n": 16,
+    "simple_move_p50_ms": 7.7,
+    "simple_move_p90_ms": 1627.1,
+    "rounds_mean": 0.77,
+    "input_tokens_mean": 6670,
+    "output_tokens_mean": 72,
+    "cache_hit_rate": 0.523,
+    "tool_accuracy": 1,
+    "outcome_accuracy": 1,
+    "misses": []
+  },
+  "runs": [
+    {
+      "id": "c01",
+      "kind": "move",
+      "message": "move my gym block to 6pm",
+      "rep": 0,
+      "now": "2026-09-23T09:00",
+      "total_ms": 14.3,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-23"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.7,
+      "tools": [
+        {
+          "name": "set_event_time",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-we",
+            "expect_title": "Gym",
+            "date": "2026-09-23",
+            "start_time": "18:00",
+            "end_time": "19:30"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Wed 6 – 7:30 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrcw3j-1",
+        "at": "2026-09-23T07:04:51.583Z",
+        "message": "move my gym block to 6pm",
+        "total_ms": 14.3,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:set_event_time",
+            "start_ms": 3.9,
+            "ms": 2.9,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 9.1,
+            "ms": 2.3,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 11.5,
+            "ms": 2.2,
+            "ok": true
+          },
+          {
+            "name": "commit:set_event_time",
+            "start_ms": 8.8,
+            "ms": 5.3,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.7,
+        "db_queries": 47,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 29,
+          "tools": [
+            "set_event_time"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-23"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c02",
+      "kind": "move",
+      "message": "move tomorrow's gym to 7pm",
+      "rep": 0,
+      "now": "2026-09-23T09:01",
+      "total_ms": 7.7,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.6,
+      "tools": [
+        {
+          "name": "set_event_time",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-th",
+            "expect_title": "Gym",
+            "date": "2026-09-24",
+            "start_time": "19:00",
+            "end_time": "20:30"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Thu 7 – 8:30 PM. Moved Study group — CS 331 to Thu 8:30 – 10 PM to make room.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrcw42-2",
+        "at": "2026-09-23T07:04:51.602Z",
+        "message": "move tomorrow's gym to 7pm",
+        "total_ms": 7.7,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:set_event_time",
+            "start_ms": 0.8,
+            "ms": 1.8,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 2.8,
+            "ms": 2.5,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 5.3,
+            "ms": 2.2,
+            "ok": true
+          },
+          {
+            "name": "commit:set_event_time",
+            "start_ms": 2.7,
+            "ms": 4.9,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.6,
+        "db_queries": 49,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 90,
+          "tools": [
+            "set_event_time"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c03",
+      "kind": "move",
+      "message": "push my gym back 30 minutes",
+      "rep": 0,
+      "now": "2026-09-23T09:02",
+      "total_ms": 7.5,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-23"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.5,
+      "tools": [
+        {
+          "name": "shift_events",
+          "status": "approved",
+          "args": {
+            "scope": "single",
+            "date": "2026-09-23",
+            "event_id": "gym-we",
+            "expect_title": "Gym",
+            "delta_minutes": 30
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Wed 5:30 – 7 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrcw4d-3",
+        "at": "2026-09-23T07:04:51.613Z",
+        "message": "push my gym back 30 minutes",
+        "total_ms": 7.5,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:shift_events",
+            "start_ms": 1.2,
+            "ms": 2,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 3.3,
+            "ms": 1.5,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 4.8,
+            "ms": 2.5,
+            "ok": true
+          },
+          {
+            "name": "commit:shift_events",
+            "start_ms": 3.3,
+            "ms": 4.2,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.5,
+        "db_queries": 44,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 29,
+          "tools": [
+            "shift_events"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-23"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c04",
+      "kind": "move",
+      "message": "move friday's gym to saturday",
+      "rep": 0,
+      "now": "2026-09-23T09:03",
+      "total_ms": 5.5,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-25"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.3,
+      "tools": [
+        {
+          "name": "shift_events",
+          "status": "approved",
+          "args": {
+            "scope": "single",
+            "date": "2026-09-25",
+            "event_id": "gym-fr",
+            "expect_title": "Gym",
+            "delta_minutes": 1440
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Sat 4 – 5:30 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrcw4o-4",
+        "at": "2026-09-23T07:04:51.624Z",
+        "message": "move friday's gym to saturday",
+        "total_ms": 5.5,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:shift_events",
+            "start_ms": 0.7,
+            "ms": 1.5,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 2.3,
+            "ms": 1.5,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 3.7,
+            "ms": 1.6,
+            "ok": true
+          },
+          {
+            "name": "commit:shift_events",
+            "start_ms": 2.2,
+            "ms": 3.2,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.3,
+        "db_queries": 45,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 29,
+          "tools": [
+            "shift_events"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-25"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c05",
+      "kind": "move",
+      "message": "move my cook session on tuesday 30 minutes earlier",
+      "rep": 0,
+      "now": "2026-09-23T09:04",
+      "total_ms": 6.2,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-29"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.4,
+      "tools": [
+        {
+          "name": "shift_events",
+          "status": "approved",
+          "args": {
+            "scope": "single",
+            "date": "2026-09-29",
+            "event_id": "cook-tu",
+            "expect_title": "Cook lunches",
+            "delta_minutes": -30
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Cook lunches to Tue 6 – 7 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrcw50-5",
+        "at": "2026-09-23T07:04:51.636Z",
+        "message": "move my cook session on tuesday 30 minutes earlier",
+        "total_ms": 6.2,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:shift_events",
+            "start_ms": 0.7,
+            "ms": 1.4,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 2.3,
+            "ms": 1.4,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 3.7,
+            "ms": 2.3,
+            "ok": true
+          },
+          {
+            "name": "commit:shift_events",
+            "start_ms": 2.3,
+            "ms": 3.9,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.4,
+        "db_queries": 44,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 35,
+          "tools": [
+            "shift_events"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-29"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c06",
+      "kind": "bulk",
+      "message": "shift everything after 3pm tomorrow back an hour",
+      "rep": 0,
+      "now": "2026-09-23T09:05",
+      "total_ms": 5.1,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.4,
+      "tools": [
+        {
+          "name": "shift_events",
+          "status": "approved",
+          "args": {
+            "scope": "day",
+            "date": "2026-09-24",
+            "delta_minutes": 60,
+            "after_time": "15:00"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Thu 6:30 – 8 PM. Moved Study group — CS 331 to Thu 8:30 – 10 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrcw59-6",
+        "at": "2026-09-23T07:04:51.645Z",
+        "message": "shift everything after 3pm tomorrow back an hour",
+        "total_ms": 5.1,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:shift_events",
+            "start_ms": 0.6,
+            "ms": 1.3,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 2,
+            "ms": 1.3,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 3.3,
+            "ms": 1.6,
+            "ok": true
+          },
+          {
+            "name": "commit:shift_events",
+            "start_ms": 2,
+            "ms": 3,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.4,
+        "db_queries": 45,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 77,
+          "tools": [
+            "shift_events"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c07",
+      "kind": "recurring",
+      "message": "no gym on Fridays",
+      "rep": 0,
+      "now": "2026-09-23T09:06",
+      "total_ms": 1954.2,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "recurring"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 6,
+        "days": null
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 10150,
+      "output_tokens": 113,
+      "prompt_build_ms": 1.9,
+      "db_ms": 1.4,
+      "tools": [
+        {
+          "name": "set_recurring_days",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-fr",
+            "expect_title": "Gym · Chest and back",
+            "days": [
+              "MO",
+              "WE",
+              "TH"
+            ]
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Gym now on Mon/Wed/Thu.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrcw5k-7",
+        "at": "2026-09-23T07:04:51.656Z",
+        "message": "no gym on Fridays",
+        "total_ms": 1954.2,
+        "prompt_build_ms": 1.9,
+        "prompt": {
+          "system_chars": 22584,
+          "context_chars": 7868,
+          "tool_schema_chars": 8402,
+          "tools": 6,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 1107.8,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 113,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 10150,
+              "system_chars": 22571,
+              "prompt_chars": 17,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 2,
+            "wall_ms": 1913.5
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:set_recurring_days",
+            "start_ms": 1916.1,
+            "ms": 16.9,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1934.3,
+            "ms": 8.6,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1943,
+            "ms": 10.7,
+            "ok": true
+          },
+          {
+            "name": "commit:set_recurring_days",
+            "start_ms": 1934.1,
+            "ms": 20,
+            "ok": true
+          }
+        ],
+        "db_ms": 1.4,
+        "db_queries": 54,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 23,
+          "tools": [
+            "set_recurring_days"
+          ]
+        },
+        "route": {
+          "families": [
+            "recurring"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 6,
+          "days": null
+        }
+      }
+    },
+    {
+      "id": "c08",
+      "kind": "recurring",
+      "message": "gym only on monday wednesday and friday from now on",
+      "rep": 0,
+      "now": "2026-09-23T09:07",
+      "total_ms": 1293.9,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "recurring"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 6,
+        "days": null
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 6642,
+      "cache_write_tokens": 3512,
+      "output_tokens": 110,
+      "prompt_build_ms": 2,
+      "db_ms": 1.5,
+      "tools": [
+        {
+          "name": "set_recurring_days",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-we",
+            "expect_title": "Gym · Legs",
+            "days": [
+              "MO",
+              "WE",
+              "FR"
+            ]
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Gym now on Mon/Wed/Fri.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrcxo1-8",
+        "at": "2026-09-23T07:04:53.617Z",
+        "message": "gym only on monday wednesday and friday from now on",
+        "total_ms": 1293.9,
+        "prompt_build_ms": 2,
+        "prompt": {
+          "system_chars": 22584,
+          "context_chars": 7868,
+          "tool_schema_chars": 8402,
+          "tools": 6,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 714.9,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 110,
+              "cache_read_tokens": 6642,
+              "cache_write_tokens": 3512,
+              "system_chars": 22571,
+              "prompt_chars": 51,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 2.1,
+            "wall_ms": 1255.8
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:set_recurring_days",
+            "start_ms": 1258.1,
+            "ms": 13.9,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1272.8,
+            "ms": 10.4,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1283.2,
+            "ms": 10.1,
+            "ok": true
+          },
+          {
+            "name": "commit:set_recurring_days",
+            "start_ms": 1272.6,
+            "ms": 21.2,
+            "ok": true
+          }
+        ],
+        "db_ms": 1.5,
+        "db_queries": 54,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 23,
+          "tools": [
+            "set_recurring_days"
+          ]
+        },
+        "route": {
+          "families": [
+            "recurring"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 6,
+          "days": null
+        }
+      }
+    },
+    {
+      "id": "c09",
+      "kind": "create",
+      "message": "add a study session friday 2-4pm",
+      "rep": 0,
+      "now": "2026-09-23T09:08",
+      "total_ms": 1238.8,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "create"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 5,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-25"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 9167,
+      "output_tokens": 133,
+      "prompt_build_ms": 2.1,
+      "db_ms": 2.6,
+      "tools": [
+        {
+          "name": "create_event",
+          "status": "approved",
+          "args": {
+            "title": "Study",
+            "kind": "personal",
+            "date": "2026-09-25",
+            "start_time": "14:00",
+            "duration_minutes": 120
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Added Study — Fri 2 – 4 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrcyo6-9",
+        "at": "2026-09-23T07:04:54.918Z",
+        "message": "add a study session friday 2-4pm",
+        "total_ms": 1238.8,
+        "prompt_build_ms": 2.1,
+        "prompt": {
+          "system_chars": 18808,
+          "context_chars": 3831,
+          "tool_schema_chars": 9612,
+          "tools": 5,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 693.5,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 133,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 9167,
+              "system_chars": 18795,
+              "prompt_chars": 32,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 2.2,
+            "wall_ms": 1215.3
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:create_event",
+            "start_ms": 1219,
+            "ms": 7.6,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1227.3,
+            "ms": 6.3,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1233.7,
+            "ms": 4.7,
+            "ok": true
+          },
+          {
+            "name": "commit:create_event",
+            "start_ms": 1227.1,
+            "ms": 11.6,
+            "ok": true
+          }
+        ],
+        "db_ms": 2.6,
+        "db_queries": 50,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 27,
+          "tools": [
+            "create_event"
+          ]
+        },
+        "route": {
+          "families": [
+            "create"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 5,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-25"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c10",
+      "kind": "create",
+      "message": "friends are coming over at 8 tonight for two hours",
+      "rep": 0,
+      "now": "2026-09-23T09:09",
+      "total_ms": 1343,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "create"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 5,
+        "days": [
+          "2026-09-23",
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 7379,
+      "cache_write_tokens": 1617,
+      "output_tokens": 136,
+      "prompt_build_ms": 2.4,
+      "db_ms": 1.6,
+      "tools": [
+        {
+          "name": "fit_in_event",
+          "status": "approved",
+          "args": {
+            "title": "Friends over",
+            "kind": "personal",
+            "date": "2026-09-23",
+            "start_time": "20:00",
+            "duration_minutes": 120
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Added Friends over — Wed 8 – 10 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrczmr-10",
+        "at": "2026-09-23T07:04:56.163Z",
+        "message": "friends are coming over at 8 tonight for two hours",
+        "total_ms": 1343,
+        "prompt_build_ms": 2.4,
+        "prompt": {
+          "system_chars": 18400,
+          "context_chars": 3423,
+          "tool_schema_chars": 9612,
+          "tools": 5,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 822.5,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 136,
+              "cache_read_tokens": 7379,
+              "cache_write_tokens": 1617,
+              "system_chars": 18387,
+              "prompt_chars": 50,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 2.5,
+            "wall_ms": 1321.6
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:fit_in_event",
+            "start_ms": 1325.1,
+            "ms": 7.1,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1332.9,
+            "ms": 5.1,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1338,
+            "ms": 4.6,
+            "ok": true
+          },
+          {
+            "name": "commit:fit_in_event",
+            "start_ms": 1332.7,
+            "ms": 10.2,
+            "ok": true
+          }
+        ],
+        "db_ms": 1.6,
+        "db_queries": 53,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 35,
+          "tools": [
+            "fit_in_event"
+          ]
+        },
+        "route": {
+          "families": [
+            "create"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 5,
+          "days": [
+            "2026-09-23",
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c11",
+      "kind": "cancel",
+      "message": "cancel my advising appointment",
+      "rep": 0,
+      "now": "2026-09-23T09:10",
+      "total_ms": 1251.5,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "cancel"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 2,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-25",
+          "2026-09-26",
+          "2026-09-27",
+          "2026-09-28",
+          "2026-09-29"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 5286,
+      "output_tokens": 81,
+      "prompt_build_ms": 2.6,
+      "db_ms": 0.7,
+      "tools": [
+        {
+          "name": "cancel_event",
+          "status": "pending",
+          "args": {
+            "event_id": "evt-advising",
+            "expect_title": "Advising appointment"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Cancel Advising appointment — Fri — approve it below.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrd0o6-11",
+        "at": "2026-09-23T07:04:57.510Z",
+        "message": "cancel my advising appointment",
+        "total_ms": 1251.5,
+        "prompt_build_ms": 2.6,
+        "prompt": {
+          "system_chars": 13784,
+          "context_chars": 4987,
+          "tool_schema_chars": 1745,
+          "tools": 2,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 831,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 81,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 5286,
+              "system_chars": 13771,
+              "prompt_chars": 30,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 2.6,
+            "wall_ms": 1244.1
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:cancel_event",
+            "start_ms": 1247.3,
+            "ms": 3.2,
+            "ok": true
+          },
+          {
+            "name": "commit:cancel_event",
+            "start_ms": 1251.2,
+            "ms": 0,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.7,
+        "db_queries": 20,
+        "outcome": {
+          "proposals": 1,
+          "applied": 0,
+          "reply_chars": 53,
+          "tools": [
+            "cancel_event"
+          ]
+        },
+        "route": {
+          "families": [
+            "cancel"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 2,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-25",
+            "2026-09-26",
+            "2026-09-27",
+            "2026-09-28",
+            "2026-09-29"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c12",
+      "kind": "reminder",
+      "message": "remind me to call mom friday at 6pm",
+      "rep": 0,
+      "now": "2026-09-23T09:11",
+      "total_ms": 1062.3,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "reminder"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 1,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-25"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 4258,
+      "output_tokens": 96,
+      "prompt_build_ms": 5,
+      "db_ms": 0.8,
+      "tools": [
+        {
+          "name": "set_reminder",
+          "status": "approved",
+          "args": {
+            "date": "2026-09-25",
+            "time": "18:00",
+            "title": "Call mom"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Call mom — Fri Sep 25 · 6 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrd1n2-12",
+        "at": "2026-09-23T07:04:58.766Z",
+        "message": "remind me to call mom friday at 6pm",
+        "total_ms": 1062.3,
+        "prompt_build_ms": 5,
+        "prompt": {
+          "system_chars": 10981,
+          "context_chars": 3831,
+          "tool_schema_chars": 1075,
+          "tools": 1,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 716.4,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 96,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 4258,
+              "system_chars": 10968,
+              "prompt_chars": 35,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 5,
+            "wall_ms": 1054.4
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:set_reminder",
+            "start_ms": 1060.4,
+            "ms": 0.3,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1061.6,
+            "ms": 0,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1061.6,
+            "ms": 0.2,
+            "ok": true
+          },
+          {
+            "name": "commit:set_reminder",
+            "start_ms": 1061.4,
+            "ms": 0.7,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.8,
+        "db_queries": 20,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 29,
+          "tools": [
+            "set_reminder"
+          ]
+        },
+        "route": {
+          "families": [
+            "reminder"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 1,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-25"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c13",
+      "kind": "question",
+      "message": "what time is my gym tomorrow?",
+      "rep": 0,
+      "now": "2026-09-23T09:12",
+      "total_ms": 1769.4,
+      "rounds": 2,
+      "route": {
+        "families": [
+          "question"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 3,
+        "days": [
+          "2026-09-23",
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 8,
+      "cache_read_tokens": 4700,
+      "cache_write_tokens": 5018,
+      "output_tokens": 103,
+      "prompt_build_ms": 3.8,
+      "db_ms": 0.8,
+      "tools": [],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Your gym tomorrow (Thursday) is at 5:30 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrd2go-13",
+        "at": "2026-09-23T07:04:59.832Z",
+        "message": "what time is my gym tomorrow?",
+        "total_ms": 1769.4,
+        "prompt_build_ms": 3.8,
+        "prompt": {
+          "system_chars": 11220,
+          "context_chars": 3423,
+          "tool_schema_chars": 2888,
+          "tools": 3,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 768.1,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 85,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 4700,
+              "system_chars": 11207,
+              "prompt_chars": 29,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 3.9,
+            "wall_ms": 1037.6
+          },
+          {
+            "round": 1,
+            "tool_calls": 0,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 511.6,
+              "api_ms": null,
+              "input_tokens": 5,
+              "output_tokens": 18,
+              "cache_read_tokens": 4700,
+              "cache_write_tokens": 318,
+              "system_chars": 11207,
+              "prompt_chars": 635,
+              "stop_reason": "end_turn"
+            },
+            "start_ms": 1045.9,
+            "wall_ms": 723
+          }
+        ],
+        "spans": [
+          {
+            "name": "read:get_schedule",
+            "start_ms": 1042.3,
+            "ms": 3.6,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.8,
+        "db_queries": 17,
+        "outcome": {
+          "proposals": 0,
+          "applied": 0,
+          "reply_chars": 43,
+          "tools": []
+        },
+        "route": {
+          "families": [
+            "question"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 3,
+          "days": [
+            "2026-09-23",
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c14",
+      "kind": "question",
+      "message": "when is my next class?",
+      "rep": 0,
+      "now": "2026-09-23T09:13",
+      "total_ms": 1656.6,
+      "rounds": 2,
+      "route": {
+        "families": [
+          "question"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 3,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-25",
+          "2026-09-26",
+          "2026-09-27",
+          "2026-09-28",
+          "2026-09-29"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 9,
+      "cache_read_tokens": 5363,
+      "cache_write_tokens": 6014,
+      "output_tokens": 112,
+      "prompt_build_ms": 3.8,
+      "db_ms": 0.8,
+      "tools": [],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Your next class is **M 340L Matrices** today (Wednesday) at **10:00 AM**.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrd3tz-14",
+        "at": "2026-09-23T07:05:01.607Z",
+        "message": "when is my next class?",
+        "total_ms": 1656.6,
+        "prompt_build_ms": 3.8,
+        "prompt": {
+          "system_chars": 12784,
+          "context_chars": 4987,
+          "tool_schema_chars": 2888,
+          "tools": 3,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 584.6,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 85,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 5363,
+              "system_chars": 12771,
+              "prompt_chars": 22,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 3.8,
+            "wall_ms": 860.7
+          },
+          {
+            "round": 1,
+            "tool_calls": 0,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 577.9,
+              "api_ms": null,
+              "input_tokens": 6,
+              "output_tokens": 27,
+              "cache_read_tokens": 5363,
+              "cache_write_tokens": 651,
+              "system_chars": 12771,
+              "prompt_chars": 1523,
+              "stop_reason": "end_turn"
+            },
+            "start_ms": 867.6,
+            "wall_ms": 788.3
+          }
+        ],
+        "spans": [
+          {
+            "name": "read:get_schedule",
+            "start_ms": 864.7,
+            "ms": 2.9,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.8,
+        "db_queries": 17,
+        "outcome": {
+          "proposals": 0,
+          "applied": 0,
+          "reply_chars": 73,
+          "tools": []
+        },
+        "route": {
+          "families": [
+            "question"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 3,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-25",
+            "2026-09-26",
+            "2026-09-27",
+            "2026-09-28",
+            "2026-09-29"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c15",
+      "kind": "recurring",
+      "message": "make my gym sessions 2 hours long",
+      "rep": 0,
+      "now": "2026-09-23T09:14",
+      "total_ms": 1204.4,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "recurring"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 6,
+        "days": null
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 6642,
+      "cache_write_tokens": 3511,
+      "output_tokens": 100,
+      "prompt_build_ms": 4,
+      "db_ms": 1.9,
+      "tools": [
+        {
+          "name": "set_duration",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-we",
+            "expect_title": "Gym · Legs",
+            "duration_minutes": 120
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Wed 5 – 7 PM. Moved Gym to Thu 5:30 – 7:30 PM. Moved Gym to Fri 4 – 6 PM. Moved Gym to Mon 5 – 7 PM. Moved Gym to Wed 5 – 7 PM. Moved Gym to Thu 5:30 – 7:30 PM. Moved Gym to Fri 4 – 6 PM. Moved Gym to Mon 5 – 7 PM. Moved Gym to Wed 5 – 7 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrd546-15",
+        "at": "2026-09-23T07:05:03.270Z",
+        "message": "make my gym sessions 2 hours long",
+        "total_ms": 1204.4,
+        "prompt_build_ms": 4,
+        "prompt": {
+          "system_chars": 22584,
+          "context_chars": 7868,
+          "tool_schema_chars": 8402,
+          "tools": 6,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 906.2,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 100,
+              "cache_read_tokens": 6642,
+              "cache_write_tokens": 3511,
+              "system_chars": 22571,
+              "prompt_chars": 33,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 4.1,
+            "wall_ms": 1179.4
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:set_duration",
+            "start_ms": 1184.3,
+            "ms": 8.1,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1193.2,
+            "ms": 5.1,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1198.5,
+            "ms": 5.4,
+            "ok": true
+          },
+          {
+            "name": "commit:set_duration",
+            "start_ms": 1193,
+            "ms": 11.1,
+            "ok": true
+          }
+        ],
+        "db_ms": 1.9,
+        "db_queries": 50,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 254,
+          "tools": [
+            "set_duration"
+          ]
+        },
+        "route": {
+          "families": [
+            "recurring"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 6,
+          "days": null
+        }
+      }
+    },
+    {
+      "id": "c16",
+      "kind": "move",
+      "message": "on tuesday put my cook session right after my last class",
+      "rep": 0,
+      "now": "2026-09-23T09:15",
+      "total_ms": 1640.4,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 6,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-29"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 8182,
+      "output_tokens": 164,
+      "prompt_build_ms": 2.6,
+      "db_ms": 2.1,
+      "tools": [
+        {
+          "name": "place_adjacent",
+          "status": "approved",
+          "args": {
+            "event_id": "cook-tu",
+            "expect_title": "Cook lunches",
+            "date": "2026-09-29",
+            "anchor_title": "ECO 304K Microeconomics",
+            "position": "after",
+            "gap_minutes": 0
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Cook lunches to Tue 5 – 6 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrd61u-16",
+        "at": "2026-09-23T07:05:04.482Z",
+        "message": "on tuesday put my cook session right after my last class",
+        "total_ms": 1640.4,
+        "prompt_build_ms": 2.6,
+        "prompt": {
+          "system_chars": 16850,
+          "context_chars": 3991,
+          "tool_schema_chars": 9222,
+          "tools": 6,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 820,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 164,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 8182,
+              "system_chars": 16837,
+              "prompt_chars": 56,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 2.7,
+            "wall_ms": 1612.3
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:place_adjacent",
+            "start_ms": 1616.2,
+            "ms": 10.3,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1627,
+            "ms": 6.8,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1633.9,
+            "ms": 6.1,
+            "ok": true
+          },
+          {
+            "name": "commit:place_adjacent",
+            "start_ms": 1626.8,
+            "ms": 13.4,
+            "ok": true
+          }
+        ],
+        "db_ms": 2.1,
+        "db_queries": 62,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 35,
+          "tools": [
+            "place_adjacent"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 6,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-29"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c17",
+      "kind": "preference",
+      "message": "from now on I prefer to cook between 5 and 8pm",
+      "rep": 0,
+      "now": "2026-09-23T09:16",
+      "total_ms": 1316.6,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "preference"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 2,
+        "days": null
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 8398,
+      "output_tokens": 96,
+      "prompt_build_ms": 2.3,
+      "db_ms": 0.7,
+      "tools": [
+        {
+          "name": "set_preference",
+          "status": "approved",
+          "args": {
+            "type": "window",
+            "kind": "cook",
+            "windows": [
+              "17:00-20:00"
+            ]
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Saved: cook preferred 5 PM-20:00 — I'll apply that from now on.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrd7bm-17",
+        "at": "2026-09-23T07:05:06.130Z",
+        "message": "from now on I prefer to cook between 5 and 8pm",
+        "total_ms": 1316.6,
+        "prompt_build_ms": 2.3,
+        "prompt": {
+          "system_chars": 19711,
+          "context_chars": 7868,
+          "tool_schema_chars": 4810,
+          "tools": 2,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 775,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 96,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 8398,
+              "system_chars": 19698,
+              "prompt_chars": 46,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 2.3,
+            "wall_ms": 1309.3
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:set_preference",
+            "start_ms": 1313.1,
+            "ms": 1.5,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1315.6,
+            "ms": 0.1,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1315.7,
+            "ms": 0.4,
+            "ok": true
+          },
+          {
+            "name": "commit:set_preference",
+            "start_ms": 1315.3,
+            "ms": 1.1,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.7,
+        "db_queries": 24,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 63,
+          "tools": [
+            "set_preference"
+          ]
+        },
+        "route": {
+          "families": [
+            "preference"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 2,
+          "days": null
+        }
+      }
+    },
+    {
+      "id": "c18",
+      "kind": "refuse",
+      "message": "move ECO 304K tomorrow to 5pm",
+      "rep": 0,
+      "now": "2026-09-23T09:17",
+      "total_ms": 1187.5,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 6,
+        "days": [
+          "2026-09-23",
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 6327,
+      "cache_write_tokens": 1616,
+      "output_tokens": 52,
+      "prompt_build_ms": 5.5,
+      "db_ms": 0.6,
+      "tools": [],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "ECO 304K Microeconomics is a pinned class — it can't be moved. It stays at 3:30 PM tomorrow.\n\nIf you need to reschedule something else around it, let me know.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrd8cb-18",
+        "at": "2026-09-23T07:05:07.451Z",
+        "message": "move ECO 304K tomorrow to 5pm",
+        "total_ms": 1187.5,
+        "prompt_build_ms": 5.5,
+        "prompt": {
+          "system_chars": 16282,
+          "context_chars": 3423,
+          "tool_schema_chars": 9222,
+          "tools": 6,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 0,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 495.1,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 52,
+              "cache_read_tokens": 6327,
+              "cache_write_tokens": 1616,
+              "system_chars": 16269,
+              "prompt_chars": 29,
+              "stop_reason": "end_turn"
+            },
+            "start_ms": 5.6,
+            "wall_ms": 1181.2
+          }
+        ],
+        "spans": [],
+        "db_ms": 0.6,
+        "db_queries": 17,
+        "outcome": {
+          "proposals": 0,
+          "applied": 0,
+          "reply_chars": 158,
+          "tools": []
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 6,
+          "days": [
+            "2026-09-23",
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c19",
+      "kind": "move",
+      "message": "push tomorrow's study group back 30 min",
+      "rep": 0,
+      "now": "2026-09-23T09:18",
+      "total_ms": 16.2,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 1.3,
+      "tools": [
+        {
+          "name": "shift_events",
+          "status": "approved",
+          "args": {
+            "scope": "single",
+            "date": "2026-09-24",
+            "event_id": "evt-study",
+            "expect_title": "Study group — CS 331",
+            "delta_minutes": 30
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Study group — CS 331 to Thu 8 – 9:30 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrd99i-19",
+        "at": "2026-09-23T07:05:08.646Z",
+        "message": "push tomorrow's study group back 30 min",
+        "total_ms": 16.2,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:shift_events",
+            "start_ms": 2.4,
+            "ms": 4.8,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 7.6,
+            "ms": 3.8,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 11.5,
+            "ms": 4.3,
+            "ok": true
+          },
+          {
+            "name": "commit:shift_events",
+            "start_ms": 7.5,
+            "ms": 8.5,
+            "ok": true
+          }
+        ],
+        "db_ms": 1.3,
+        "db_queries": 42,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 46,
+          "tools": [
+            "shift_events"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c20",
+      "kind": "move",
+      "message": "move monday's gym to 6pm",
+      "rep": 0,
+      "now": "2026-09-23T09:19",
+      "total_ms": 12.1,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-28"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 1,
+      "tools": [
+        {
+          "name": "set_event_time",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-mo",
+            "expect_title": "Gym",
+            "date": "2026-09-28",
+            "start_time": "18:00",
+            "end_time": "19:30"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Mon 6 – 7:30 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrd9a4-20",
+        "at": "2026-09-23T07:05:08.668Z",
+        "message": "move monday's gym to 6pm",
+        "total_ms": 12.1,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:set_event_time",
+            "start_ms": 1.4,
+            "ms": 3,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 4.7,
+            "ms": 2.7,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 7.4,
+            "ms": 4.4,
+            "ok": true
+          },
+          {
+            "name": "commit:set_event_time",
+            "start_ms": 4.6,
+            "ms": 7.4,
+            "ok": true
+          }
+        ],
+        "db_ms": 1,
+        "db_queries": 47,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 29,
+          "tools": [
+            "set_event_time"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-28"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c21",
+      "kind": "chat",
+      "message": "thanks!",
+      "rep": 0,
+      "now": "2026-09-23T09:20",
+      "total_ms": 1607.3,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "general"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": null,
+        "days": null
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 24792,
+      "output_tokens": 39,
+      "prompt_build_ms": 1.7,
+      "db_ms": 0.3,
+      "tools": [],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "You're welcome! I'm here whenever you need to adjust your schedule, add events, track meals, or manage your internship applications. Just let me know what's up.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrd9ak-21",
+        "at": "2026-09-23T07:05:08.684Z",
+        "message": "thanks!",
+        "total_ms": 1607.3,
+        "prompt_build_ms": 1.7,
+        "prompt": {
+          "system_chars": 39342,
+          "context_chars": 7868,
+          "tool_schema_chars": 41217,
+          "tools": 26,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 0,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 1082.7,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 39,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 24792,
+              "system_chars": 39329,
+              "prompt_chars": 7,
+              "stop_reason": "end_turn"
+            },
+            "start_ms": 1.8,
+            "wall_ms": 1604.8
+          }
+        ],
+        "spans": [],
+        "db_ms": 0.3,
+        "db_queries": 14,
+        "outcome": {
+          "proposals": 0,
+          "applied": 0,
+          "reply_chars": 160,
+          "tools": []
+        },
+        "route": {
+          "families": [
+            "general"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": null,
+          "days": null
+        }
+      }
+    },
+    {
+      "id": "c22",
+      "kind": "create",
+      "message": "block 2 hours to study saturday afternoon",
+      "rep": 0,
+      "now": "2026-09-23T09:21",
+      "total_ms": 3496.3,
+      "rounds": 2,
+      "route": {
+        "families": [
+          "create"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 5,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-26"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 8,
+      "cache_read_tokens": 16380,
+      "cache_write_tokens": 1742,
+      "output_tokens": 259,
+      "prompt_build_ms": 4.8,
+      "db_ms": 2.2,
+      "tools": [
+        {
+          "name": "create_event",
+          "status": "approved",
+          "args": {
+            "title": "Study",
+            "kind": "personal",
+            "date": "2026-09-26",
+            "start_time": "14:00",
+            "duration_minutes": 120
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Added Study — Sat 2 – 4 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdajd-22",
+        "at": "2026-09-23T07:05:10.297Z",
+        "message": "block 2 hours to study saturday afternoon",
+        "total_ms": 3496.3,
+        "prompt_build_ms": 4.8,
+        "prompt": {
+          "system_chars": 18412,
+          "context_chars": 3435,
+          "tool_schema_chars": 9612,
+          "tools": 5,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 737.2,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 106,
+              "cache_read_tokens": 7379,
+              "cache_write_tokens": 1622,
+              "system_chars": 18399,
+              "prompt_chars": 41,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 5,
+            "wall_ms": 1574.9
+          },
+          {
+            "round": 1,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 666.6,
+              "api_ms": null,
+              "input_tokens": 5,
+              "output_tokens": 153,
+              "cache_read_tokens": 9001,
+              "cache_write_tokens": 120,
+              "system_chars": 18399,
+              "prompt_chars": 145,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 1583.5,
+            "wall_ms": 1894.2
+          }
+        ],
+        "spans": [
+          {
+            "name": "read:get_schedule",
+            "start_ms": 1580.1,
+            "ms": 3.4,
+            "ok": true
+          },
+          {
+            "name": "dry:create_event",
+            "start_ms": 3477.9,
+            "ms": 8.4,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 3487,
+            "ms": 4.3,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 3491.3,
+            "ms": 4.5,
+            "ok": true
+          },
+          {
+            "name": "commit:create_event",
+            "start_ms": 3486.8,
+            "ms": 9.4,
+            "ok": true
+          }
+        ],
+        "db_ms": 2.2,
+        "db_queries": 53,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 27,
+          "tools": [
+            "create_event"
+          ]
+        },
+        "route": {
+          "families": [
+            "create"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 5,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-26"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c01",
+      "kind": "move",
+      "message": "move my gym block to 6pm",
+      "rep": 1,
+      "now": "2026-09-23T09:22",
+      "total_ms": 9.9,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-23"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.8,
+      "tools": [
+        {
+          "name": "set_event_time",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-we",
+            "expect_title": "Gym",
+            "date": "2026-09-23",
+            "start_time": "18:00",
+            "end_time": "19:30"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Wed 6 – 7:30 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrdd8o-23",
+        "at": "2026-09-23T07:05:13.800Z",
+        "message": "move my gym block to 6pm",
+        "total_ms": 9.9,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:set_event_time",
+            "start_ms": 1.4,
+            "ms": 2.9,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 4.6,
+            "ms": 2.6,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 7.2,
+            "ms": 2.5,
+            "ok": true
+          },
+          {
+            "name": "commit:set_event_time",
+            "start_ms": 4.5,
+            "ms": 5.3,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.8,
+        "db_queries": 47,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 29,
+          "tools": [
+            "set_event_time"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-23"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c02",
+      "kind": "move",
+      "message": "move tomorrow's gym to 7pm",
+      "rep": 1,
+      "now": "2026-09-23T09:23",
+      "total_ms": 7.6,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.6,
+      "tools": [
+        {
+          "name": "set_event_time",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-th",
+            "expect_title": "Gym",
+            "date": "2026-09-24",
+            "start_time": "19:00",
+            "end_time": "20:30"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Thu 7 – 8:30 PM. Moved Study group — CS 331 to Thu 8:30 – 10 PM to make room.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrdd95-24",
+        "at": "2026-09-23T07:05:13.817Z",
+        "message": "move tomorrow's gym to 7pm",
+        "total_ms": 7.6,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:set_event_time",
+            "start_ms": 0.9,
+            "ms": 2.1,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 3.2,
+            "ms": 2,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 5.3,
+            "ms": 2.1,
+            "ok": true
+          },
+          {
+            "name": "commit:set_event_time",
+            "start_ms": 3.2,
+            "ms": 4.3,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.6,
+        "db_queries": 49,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 90,
+          "tools": [
+            "set_event_time"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c03",
+      "kind": "move",
+      "message": "push my gym back 30 minutes",
+      "rep": 1,
+      "now": "2026-09-23T09:24",
+      "total_ms": 7.2,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-23"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.6,
+      "tools": [
+        {
+          "name": "shift_events",
+          "status": "approved",
+          "args": {
+            "scope": "single",
+            "date": "2026-09-23",
+            "event_id": "gym-we",
+            "expect_title": "Gym",
+            "delta_minutes": 30
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Wed 5:30 – 7 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrdd9h-25",
+        "at": "2026-09-23T07:05:13.829Z",
+        "message": "push my gym back 30 minutes",
+        "total_ms": 7.2,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:shift_events",
+            "start_ms": 0.7,
+            "ms": 2.5,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 3.5,
+            "ms": 1.8,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 5.3,
+            "ms": 1.7,
+            "ok": true
+          },
+          {
+            "name": "commit:shift_events",
+            "start_ms": 3.4,
+            "ms": 3.7,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.6,
+        "db_queries": 44,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 29,
+          "tools": [
+            "shift_events"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-23"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c04",
+      "kind": "move",
+      "message": "move friday's gym to saturday",
+      "rep": 1,
+      "now": "2026-09-23T09:25",
+      "total_ms": 5.6,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-25"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.4,
+      "tools": [
+        {
+          "name": "shift_events",
+          "status": "approved",
+          "args": {
+            "scope": "single",
+            "date": "2026-09-25",
+            "event_id": "gym-fr",
+            "expect_title": "Gym",
+            "delta_minutes": 1440
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Sat 4 – 5:30 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrdd9s-26",
+        "at": "2026-09-23T07:05:13.840Z",
+        "message": "move friday's gym to saturday",
+        "total_ms": 5.6,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:shift_events",
+            "start_ms": 0.7,
+            "ms": 1.6,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 2.4,
+            "ms": 1.5,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 3.9,
+            "ms": 1.6,
+            "ok": true
+          },
+          {
+            "name": "commit:shift_events",
+            "start_ms": 2.3,
+            "ms": 3.2,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.4,
+        "db_queries": 45,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 29,
+          "tools": [
+            "shift_events"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-25"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c05",
+      "kind": "move",
+      "message": "move my cook session on tuesday 30 minutes earlier",
+      "rep": 1,
+      "now": "2026-09-23T09:26",
+      "total_ms": 5.8,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-29"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.4,
+      "tools": [
+        {
+          "name": "shift_events",
+          "status": "approved",
+          "args": {
+            "scope": "single",
+            "date": "2026-09-29",
+            "event_id": "cook-tu",
+            "expect_title": "Cook lunches",
+            "delta_minutes": -30
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Cook lunches to Tue 6 – 7 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrdda4-27",
+        "at": "2026-09-23T07:05:13.852Z",
+        "message": "move my cook session on tuesday 30 minutes earlier",
+        "total_ms": 5.8,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:shift_events",
+            "start_ms": 0.7,
+            "ms": 1.6,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 2.4,
+            "ms": 1.6,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 4,
+            "ms": 1.7,
+            "ok": true
+          },
+          {
+            "name": "commit:shift_events",
+            "start_ms": 2.3,
+            "ms": 3.4,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.4,
+        "db_queries": 44,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 35,
+          "tools": [
+            "shift_events"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-29"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c06",
+      "kind": "bulk",
+      "message": "shift everything after 3pm tomorrow back an hour",
+      "rep": 1,
+      "now": "2026-09-23T09:27",
+      "total_ms": 6,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 0.4,
+      "tools": [
+        {
+          "name": "shift_events",
+          "status": "approved",
+          "args": {
+            "scope": "day",
+            "date": "2026-09-24",
+            "delta_minutes": 60,
+            "after_time": "15:00"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Thu 6:30 – 8 PM. Moved Study group — CS 331 to Thu 8:30 – 10 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrddad-28",
+        "at": "2026-09-23T07:05:13.861Z",
+        "message": "shift everything after 3pm tomorrow back an hour",
+        "total_ms": 6,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:shift_events",
+            "start_ms": 0.6,
+            "ms": 2.1,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 2.8,
+            "ms": 1.4,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 4.2,
+            "ms": 1.7,
+            "ok": true
+          },
+          {
+            "name": "commit:shift_events",
+            "start_ms": 2.8,
+            "ms": 3.1,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.4,
+        "db_queries": 45,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 77,
+          "tools": [
+            "shift_events"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c07",
+      "kind": "recurring",
+      "message": "no gym on Fridays",
+      "rep": 1,
+      "now": "2026-09-23T09:28",
+      "total_ms": 1404.2,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "recurring"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 6,
+        "days": null
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 6642,
+      "cache_write_tokens": 3508,
+      "output_tokens": 113,
+      "prompt_build_ms": 1.1,
+      "db_ms": 1.4,
+      "tools": [
+        {
+          "name": "set_recurring_days",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-fr",
+            "expect_title": "Gym · Chest and back",
+            "days": [
+              "MO",
+              "WE",
+              "TH"
+            ]
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Gym now on Mon/Wed/Thu.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrddao-29",
+        "at": "2026-09-23T07:05:13.872Z",
+        "message": "no gym on Fridays",
+        "total_ms": 1404.2,
+        "prompt_build_ms": 1.1,
+        "prompt": {
+          "system_chars": 22584,
+          "context_chars": 7868,
+          "tool_schema_chars": 8402,
+          "tools": 6,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 772.3,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 113,
+              "cache_read_tokens": 6642,
+              "cache_write_tokens": 3508,
+              "system_chars": 22571,
+              "prompt_chars": 17,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 1.1,
+            "wall_ms": 1370.8
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:set_recurring_days",
+            "start_ms": 1372,
+            "ms": 10.5,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1383.2,
+            "ms": 9.6,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1392.9,
+            "ms": 10.7,
+            "ok": true
+          },
+          {
+            "name": "commit:set_recurring_days",
+            "start_ms": 1383.1,
+            "ms": 21,
+            "ok": true
+          }
+        ],
+        "db_ms": 1.4,
+        "db_queries": 54,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 23,
+          "tools": [
+            "set_recurring_days"
+          ]
+        },
+        "route": {
+          "families": [
+            "recurring"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 6,
+          "days": null
+        }
+      }
+    },
+    {
+      "id": "c08",
+      "kind": "recurring",
+      "message": "gym only on monday wednesday and friday from now on",
+      "rep": 1,
+      "now": "2026-09-23T09:29",
+      "total_ms": 1331.9,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "recurring"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 6,
+        "days": null
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 6642,
+      "cache_write_tokens": 3512,
+      "output_tokens": 110,
+      "prompt_build_ms": 1.9,
+      "db_ms": 1.8,
+      "tools": [
+        {
+          "name": "set_recurring_days",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-we",
+            "expect_title": "Gym · Legs",
+            "days": [
+              "MO",
+              "WE",
+              "FR"
+            ]
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Gym now on Mon/Wed/Fri.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdedv-30",
+        "at": "2026-09-23T07:05:15.283Z",
+        "message": "gym only on monday wednesday and friday from now on",
+        "total_ms": 1331.9,
+        "prompt_build_ms": 1.9,
+        "prompt": {
+          "system_chars": 22584,
+          "context_chars": 7868,
+          "tool_schema_chars": 8402,
+          "tools": 6,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 772.1,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 110,
+              "cache_read_tokens": 6642,
+              "cache_write_tokens": 3512,
+              "system_chars": 22571,
+              "prompt_chars": 51,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 1.9,
+            "wall_ms": 1297
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:set_recurring_days",
+            "start_ms": 1299,
+            "ms": 11.9,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1311.8,
+            "ms": 9.9,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1321.8,
+            "ms": 9.5,
+            "ok": true
+          },
+          {
+            "name": "commit:set_recurring_days",
+            "start_ms": 1311.6,
+            "ms": 20.2,
+            "ok": true
+          }
+        ],
+        "db_ms": 1.8,
+        "db_queries": 54,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 23,
+          "tools": [
+            "set_recurring_days"
+          ]
+        },
+        "route": {
+          "families": [
+            "recurring"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 6,
+          "days": null
+        }
+      }
+    },
+    {
+      "id": "c09",
+      "kind": "create",
+      "message": "add a study session friday 2-4pm",
+      "rep": 1,
+      "now": "2026-09-23T09:30",
+      "total_ms": 1672.1,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "create"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 5,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-25"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 7379,
+      "cache_write_tokens": 1788,
+      "output_tokens": 133,
+      "prompt_build_ms": 1.7,
+      "db_ms": 1.4,
+      "tools": [
+        {
+          "name": "create_event",
+          "status": "approved",
+          "args": {
+            "title": "Study",
+            "kind": "personal",
+            "date": "2026-09-25",
+            "start_time": "14:00",
+            "duration_minutes": 120
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Added Study — Fri 2 – 4 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdff2-31",
+        "at": "2026-09-23T07:05:16.622Z",
+        "message": "add a study session friday 2-4pm",
+        "total_ms": 1672.1,
+        "prompt_build_ms": 1.7,
+        "prompt": {
+          "system_chars": 18808,
+          "context_chars": 3831,
+          "tool_schema_chars": 9612,
+          "tools": 5,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 817,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 133,
+              "cache_read_tokens": 7379,
+              "cache_write_tokens": 1788,
+              "system_chars": 18795,
+              "prompt_chars": 32,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 1.8,
+            "wall_ms": 1656.6
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:create_event",
+            "start_ms": 1658.5,
+            "ms": 5.1,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1664.2,
+            "ms": 3.7,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1667.9,
+            "ms": 3.7,
+            "ok": true
+          },
+          {
+            "name": "commit:create_event",
+            "start_ms": 1664,
+            "ms": 8,
+            "ok": true
+          }
+        ],
+        "db_ms": 1.4,
+        "db_queries": 50,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 27,
+          "tools": [
+            "create_event"
+          ]
+        },
+        "route": {
+          "families": [
+            "create"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 5,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-25"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c10",
+      "kind": "create",
+      "message": "friends are coming over at 8 tonight for two hours",
+      "rep": 1,
+      "now": "2026-09-23T09:31",
+      "total_ms": 1600.2,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "create"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 5,
+        "days": [
+          "2026-09-23",
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 7379,
+      "cache_write_tokens": 1617,
+      "output_tokens": 136,
+      "prompt_build_ms": 2.5,
+      "db_ms": 1.5,
+      "tools": [
+        {
+          "name": "fit_in_event",
+          "status": "approved",
+          "args": {
+            "title": "Friends over",
+            "kind": "personal",
+            "date": "2026-09-23",
+            "start_time": "20:00",
+            "duration_minutes": 120
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Added Friends over — Wed 8 – 10 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdgpn-32",
+        "at": "2026-09-23T07:05:18.299Z",
+        "message": "friends are coming over at 8 tonight for two hours",
+        "total_ms": 1600.2,
+        "prompt_build_ms": 2.5,
+        "prompt": {
+          "system_chars": 18400,
+          "context_chars": 3423,
+          "tool_schema_chars": 9612,
+          "tools": 5,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 723.6,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 136,
+              "cache_read_tokens": 7379,
+              "cache_write_tokens": 1617,
+              "system_chars": 18387,
+              "prompt_chars": 50,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 2.6,
+            "wall_ms": 1584
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:fit_in_event",
+            "start_ms": 1586.8,
+            "ms": 4.7,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1592,
+            "ms": 3.8,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1595.8,
+            "ms": 3.8,
+            "ok": true
+          },
+          {
+            "name": "commit:fit_in_event",
+            "start_ms": 1591.9,
+            "ms": 8.1,
+            "ok": true
+          }
+        ],
+        "db_ms": 1.5,
+        "db_queries": 53,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 35,
+          "tools": [
+            "fit_in_event"
+          ]
+        },
+        "route": {
+          "families": [
+            "create"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 5,
+          "days": [
+            "2026-09-23",
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c11",
+      "kind": "cancel",
+      "message": "cancel my advising appointment",
+      "rep": 1,
+      "now": "2026-09-23T09:32",
+      "total_ms": 1015.9,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "cancel"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 2,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-25",
+          "2026-09-26",
+          "2026-09-27",
+          "2026-09-28",
+          "2026-09-29"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 5286,
+      "output_tokens": 81,
+      "prompt_build_ms": 3.1,
+      "db_ms": 0.5,
+      "tools": [
+        {
+          "name": "cancel_event",
+          "status": "pending",
+          "args": {
+            "event_id": "evt-advising",
+            "expect_title": "Advising appointment"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Cancel Advising appointment — Fri — approve it below.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdhy8-33",
+        "at": "2026-09-23T07:05:19.904Z",
+        "message": "cancel my advising appointment",
+        "total_ms": 1015.9,
+        "prompt_build_ms": 3.1,
+        "prompt": {
+          "system_chars": 13784,
+          "context_chars": 4987,
+          "tool_schema_chars": 1745,
+          "tools": 2,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 756.2,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 81,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 5286,
+              "system_chars": 13771,
+              "prompt_chars": 30,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 3.1,
+            "wall_ms": 1010.6
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:cancel_event",
+            "start_ms": 1013.8,
+            "ms": 1.8,
+            "ok": true
+          },
+          {
+            "name": "commit:cancel_event",
+            "start_ms": 1015.8,
+            "ms": 0,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.5,
+        "db_queries": 20,
+        "outcome": {
+          "proposals": 1,
+          "applied": 0,
+          "reply_chars": 53,
+          "tools": [
+            "cancel_event"
+          ]
+        },
+        "route": {
+          "families": [
+            "cancel"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 2,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-25",
+            "2026-09-26",
+            "2026-09-27",
+            "2026-09-28",
+            "2026-09-29"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c12",
+      "kind": "reminder",
+      "message": "remind me to call mom friday at 6pm",
+      "rep": 1,
+      "now": "2026-09-23T09:33",
+      "total_ms": 971.1,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "reminder"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 1,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-25"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 4258,
+      "output_tokens": 96,
+      "prompt_build_ms": 3,
+      "db_ms": 0.6,
+      "tools": [
+        {
+          "name": "set_reminder",
+          "status": "approved",
+          "args": {
+            "date": "2026-09-25",
+            "time": "18:00",
+            "title": "Call mom"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Call mom — Fri Sep 25 · 6 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdiqj-34",
+        "at": "2026-09-23T07:05:20.923Z",
+        "message": "remind me to call mom friday at 6pm",
+        "total_ms": 971.1,
+        "prompt_build_ms": 3,
+        "prompt": {
+          "system_chars": 10981,
+          "context_chars": 3831,
+          "tool_schema_chars": 1075,
+          "tools": 1,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 637.2,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 96,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 4258,
+              "system_chars": 10968,
+              "prompt_chars": 35,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 3.1,
+            "wall_ms": 966.6
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:set_reminder",
+            "start_ms": 969.7,
+            "ms": 0.1,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 970.6,
+            "ms": 0,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 970.6,
+            "ms": 0.1,
+            "ok": true
+          },
+          {
+            "name": "commit:set_reminder",
+            "start_ms": 970.4,
+            "ms": 0.5,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.6,
+        "db_queries": 20,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 29,
+          "tools": [
+            "set_reminder"
+          ]
+        },
+        "route": {
+          "families": [
+            "reminder"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 1,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-25"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c13",
+      "kind": "question",
+      "message": "what time is my gym tomorrow?",
+      "rep": 1,
+      "now": "2026-09-23T09:34",
+      "total_ms": 1746.9,
+      "rounds": 2,
+      "route": {
+        "families": [
+          "question"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 3,
+        "days": [
+          "2026-09-23",
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 8,
+      "cache_read_tokens": 4700,
+      "cache_write_tokens": 5018,
+      "output_tokens": 103,
+      "prompt_build_ms": 3.8,
+      "db_ms": 0.8,
+      "tools": [],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Your gym tomorrow (Thursday) is at 5:30 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdjhm-35",
+        "at": "2026-09-23T07:05:21.898Z",
+        "message": "what time is my gym tomorrow?",
+        "total_ms": 1746.9,
+        "prompt_build_ms": 3.8,
+        "prompt": {
+          "system_chars": 11220,
+          "context_chars": 3423,
+          "tool_schema_chars": 2888,
+          "tools": 3,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 739.9,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 85,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 4700,
+              "system_chars": 11207,
+              "prompt_chars": 29,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 3.9,
+            "wall_ms": 972.3
+          },
+          {
+            "round": 1,
+            "tool_calls": 0,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 554.6,
+              "api_ms": null,
+              "input_tokens": 5,
+              "output_tokens": 18,
+              "cache_read_tokens": 4700,
+              "cache_write_tokens": 318,
+              "system_chars": 11207,
+              "prompt_chars": 635,
+              "stop_reason": "end_turn"
+            },
+            "start_ms": 978.6,
+            "wall_ms": 767.8
+          }
+        ],
+        "spans": [
+          {
+            "name": "read:get_schedule",
+            "start_ms": 976.3,
+            "ms": 2.2,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.8,
+        "db_queries": 17,
+        "outcome": {
+          "proposals": 0,
+          "applied": 0,
+          "reply_chars": 43,
+          "tools": []
+        },
+        "route": {
+          "families": [
+            "question"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 3,
+          "days": [
+            "2026-09-23",
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c14",
+      "kind": "question",
+      "message": "when is my next class?",
+      "rep": 1,
+      "now": "2026-09-23T09:35",
+      "total_ms": 2162.8,
+      "rounds": 2,
+      "route": {
+        "families": [
+          "question"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 3,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-25",
+          "2026-09-26",
+          "2026-09-27",
+          "2026-09-28",
+          "2026-09-29"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 9,
+      "cache_read_tokens": 5363,
+      "cache_write_tokens": 6014,
+      "output_tokens": 121,
+      "prompt_build_ms": 3.6,
+      "db_ms": 0.7,
+      "tools": [],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Your next class is **M 340L Matrices** today (Wednesday) at **10:00 AM** in RLM 6.104.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdkub-36",
+        "at": "2026-09-23T07:05:23.651Z",
+        "message": "when is my next class?",
+        "total_ms": 2162.8,
+        "prompt_build_ms": 3.6,
+        "prompt": {
+          "system_chars": 12784,
+          "context_chars": 4987,
+          "tool_schema_chars": 2888,
+          "tools": 3,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 792.6,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 85,
+              "cache_read_tokens": 0,
+              "cache_write_tokens": 5363,
+              "system_chars": 12771,
+              "prompt_chars": 22,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 3.7,
+            "wall_ms": 1217
+          },
+          {
+            "round": 1,
+            "tool_calls": 0,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 619.4,
+              "api_ms": null,
+              "input_tokens": 6,
+              "output_tokens": 36,
+              "cache_read_tokens": 5363,
+              "cache_write_tokens": 651,
+              "system_chars": 12771,
+              "prompt_chars": 1523,
+              "stop_reason": "end_turn"
+            },
+            "start_ms": 1224.2,
+            "wall_ms": 937.9
+          }
+        ],
+        "spans": [
+          {
+            "name": "read:get_schedule",
+            "start_ms": 1220.7,
+            "ms": 3.4,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.7,
+        "db_queries": 17,
+        "outcome": {
+          "proposals": 0,
+          "applied": 0,
+          "reply_chars": 86,
+          "tools": []
+        },
+        "route": {
+          "families": [
+            "question"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 3,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-25",
+            "2026-09-26",
+            "2026-09-27",
+            "2026-09-28",
+            "2026-09-29"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c15",
+      "kind": "recurring",
+      "message": "make my gym sessions 2 hours long",
+      "rep": 1,
+      "now": "2026-09-23T09:36",
+      "total_ms": 1276.2,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "recurring"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 6,
+        "days": null
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 6642,
+      "cache_write_tokens": 3511,
+      "output_tokens": 100,
+      "prompt_build_ms": 4.1,
+      "db_ms": 2.1,
+      "tools": [
+        {
+          "name": "set_duration",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-we",
+            "expect_title": "Gym · Legs",
+            "duration_minutes": 120
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Wed 5 – 7 PM. Moved Gym to Thu 5:30 – 7:30 PM. Moved Gym to Fri 4 – 6 PM. Moved Gym to Mon 5 – 7 PM. Moved Gym to Wed 5 – 7 PM. Moved Gym to Thu 5:30 – 7:30 PM. Moved Gym to Fri 4 – 6 PM. Moved Gym to Mon 5 – 7 PM. Moved Gym to Wed 5 – 7 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdmik-37",
+        "at": "2026-09-23T07:05:25.820Z",
+        "message": "make my gym sessions 2 hours long",
+        "total_ms": 1276.2,
+        "prompt_build_ms": 4.1,
+        "prompt": {
+          "system_chars": 22584,
+          "context_chars": 7868,
+          "tool_schema_chars": 8402,
+          "tools": 6,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 778.3,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 100,
+              "cache_read_tokens": 6642,
+              "cache_write_tokens": 3511,
+              "system_chars": 22571,
+              "prompt_chars": 33,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 4.2,
+            "wall_ms": 1251.8
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:set_duration",
+            "start_ms": 1256.1,
+            "ms": 9.3,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1266.4,
+            "ms": 4.5,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1271,
+            "ms": 4.5,
+            "ok": true
+          },
+          {
+            "name": "commit:set_duration",
+            "start_ms": 1266.2,
+            "ms": 9.6,
+            "ok": true
+          }
+        ],
+        "db_ms": 2.1,
+        "db_queries": 50,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 254,
+          "tools": [
+            "set_duration"
+          ]
+        },
+        "route": {
+          "families": [
+            "recurring"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 6,
+          "days": null
+        }
+      }
+    },
+    {
+      "id": "c16",
+      "kind": "move",
+      "message": "on tuesday put my cook session right after my last class",
+      "rep": 1,
+      "now": "2026-09-23T09:37",
+      "total_ms": 1627.1,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 6,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-29"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 6327,
+      "cache_write_tokens": 1855,
+      "output_tokens": 164,
+      "prompt_build_ms": 2.5,
+      "db_ms": 2,
+      "tools": [
+        {
+          "name": "place_adjacent",
+          "status": "approved",
+          "args": {
+            "event_id": "cook-tu",
+            "expect_title": "Cook lunches",
+            "date": "2026-09-29",
+            "anchor_title": "ECO 304K Microeconomics",
+            "position": "after",
+            "gap_minutes": 0
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Cook lunches to Tue 5 – 6 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdni9-38",
+        "at": "2026-09-23T07:05:27.105Z",
+        "message": "on tuesday put my cook session right after my last class",
+        "total_ms": 1627.1,
+        "prompt_build_ms": 2.5,
+        "prompt": {
+          "system_chars": 16850,
+          "context_chars": 3991,
+          "tool_schema_chars": 9222,
+          "tools": 6,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 768.9,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 164,
+              "cache_read_tokens": 6327,
+              "cache_write_tokens": 1855,
+              "system_chars": 16837,
+              "prompt_chars": 56,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 2.5,
+            "wall_ms": 1602.3
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:place_adjacent",
+            "start_ms": 1605,
+            "ms": 9.2,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1614.7,
+            "ms": 5.7,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1620.5,
+            "ms": 6.1,
+            "ok": true
+          },
+          {
+            "name": "commit:place_adjacent",
+            "start_ms": 1614.6,
+            "ms": 12.4,
+            "ok": true
+          }
+        ],
+        "db_ms": 2,
+        "db_queries": 62,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 35,
+          "tools": [
+            "place_adjacent"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 6,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-29"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c17",
+      "kind": "preference",
+      "message": "from now on I prefer to cook between 5 and 8pm",
+      "rep": 1,
+      "now": "2026-09-23T09:38",
+      "total_ms": 1228.5,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "preference"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 2,
+        "days": null
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 4881,
+      "cache_write_tokens": 3517,
+      "output_tokens": 96,
+      "prompt_build_ms": 2,
+      "db_ms": 0.6,
+      "tools": [
+        {
+          "name": "set_preference",
+          "status": "approved",
+          "args": {
+            "type": "window",
+            "kind": "cook",
+            "windows": [
+              "17:00-20:00"
+            ]
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Saved: cook preferred 5 PM-20:00 — I'll apply that from now on.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdoro-39",
+        "at": "2026-09-23T07:05:28.740Z",
+        "message": "from now on I prefer to cook between 5 and 8pm",
+        "total_ms": 1228.5,
+        "prompt_build_ms": 2,
+        "prompt": {
+          "system_chars": 19711,
+          "context_chars": 7868,
+          "tool_schema_chars": 4810,
+          "tools": 2,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 635.2,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 96,
+              "cache_read_tokens": 4881,
+              "cache_write_tokens": 3517,
+              "system_chars": 19698,
+              "prompt_chars": 46,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 2.1,
+            "wall_ms": 1224.2
+          }
+        ],
+        "spans": [
+          {
+            "name": "dry:set_preference",
+            "start_ms": 1226.5,
+            "ms": 0.5,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 1227.8,
+            "ms": 0.1,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 1227.9,
+            "ms": 0.2,
+            "ok": true
+          },
+          {
+            "name": "commit:set_preference",
+            "start_ms": 1227.6,
+            "ms": 0.7,
+            "ok": true
+          }
+        ],
+        "db_ms": 0.6,
+        "db_queries": 24,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 63,
+          "tools": [
+            "set_preference"
+          ]
+        },
+        "route": {
+          "families": [
+            "preference"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 2,
+          "days": null
+        }
+      }
+    },
+    {
+      "id": "c18",
+      "kind": "refuse",
+      "message": "move ECO 304K tomorrow to 5pm",
+      "rep": 1,
+      "now": "2026-09-23T09:39",
+      "total_ms": 1299,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 6,
+        "days": [
+          "2026-09-23",
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 6327,
+      "cache_write_tokens": 1616,
+      "output_tokens": 52,
+      "prompt_build_ms": 5.6,
+      "db_ms": 0.7,
+      "tools": [],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "ECO 304K Microeconomics is a pinned class — it can't be moved. It stays at 3:30 PM tomorrow.\n\nIf you need to reschedule something else around it, let me know.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdppx-40",
+        "at": "2026-09-23T07:05:29.973Z",
+        "message": "move ECO 304K tomorrow to 5pm",
+        "total_ms": 1299,
+        "prompt_build_ms": 5.6,
+        "prompt": {
+          "system_chars": 16282,
+          "context_chars": 3423,
+          "tool_schema_chars": 9222,
+          "tools": 6,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 0,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 764.9,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 52,
+              "cache_read_tokens": 6327,
+              "cache_write_tokens": 1616,
+              "system_chars": 16269,
+              "prompt_chars": 29,
+              "stop_reason": "end_turn"
+            },
+            "start_ms": 5.7,
+            "wall_ms": 1292.7
+          }
+        ],
+        "spans": [],
+        "db_ms": 0.7,
+        "db_queries": 17,
+        "outcome": {
+          "proposals": 0,
+          "applied": 0,
+          "reply_chars": 158,
+          "tools": []
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 6,
+          "days": [
+            "2026-09-23",
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c19",
+      "kind": "move",
+      "message": "push tomorrow's study group back 30 min",
+      "rep": 1,
+      "now": "2026-09-23T09:40",
+      "total_ms": 14.1,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-24"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 1.2,
+      "tools": [
+        {
+          "name": "shift_events",
+          "status": "approved",
+          "args": {
+            "scope": "single",
+            "date": "2026-09-24",
+            "event_id": "evt-study",
+            "expect_title": "Study group — CS 331",
+            "delta_minutes": 30
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Study group — CS 331 to Thu 8 – 9:30 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrdqq6-41",
+        "at": "2026-09-23T07:05:31.278Z",
+        "message": "push tomorrow's study group back 30 min",
+        "total_ms": 14.1,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:shift_events",
+            "start_ms": 1.9,
+            "ms": 4.1,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 6.6,
+            "ms": 3.5,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 10.2,
+            "ms": 3.6,
+            "ok": true
+          },
+          {
+            "name": "commit:shift_events",
+            "start_ms": 6.5,
+            "ms": 7.5,
+            "ok": true
+          }
+        ],
+        "db_ms": 1.2,
+        "db_queries": 42,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 46,
+          "tools": [
+            "shift_events"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-24"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c20",
+      "kind": "move",
+      "message": "move monday's gym to 6pm",
+      "rep": 1,
+      "now": "2026-09-23T09:41",
+      "total_ms": 12,
+      "rounds": 0,
+      "route": {
+        "families": [
+          "move"
+        ],
+        "source": "fast_path",
+        "complex": false,
+        "tools": 0,
+        "days": [
+          "2026-09-28"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "output_tokens": 0,
+      "prompt_build_ms": 0,
+      "db_ms": 1,
+      "tools": [
+        {
+          "name": "set_event_time",
+          "status": "approved",
+          "args": {
+            "event_id": "gym-mo",
+            "expect_title": "Gym",
+            "date": "2026-09-28",
+            "start_time": "18:00",
+            "end_time": "19:30"
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Moved Gym to Mon 6 – 7:30 PM.",
+      "backends": [],
+      "trace": {
+        "id": "turn-mudrdqqp-42",
+        "at": "2026-09-23T07:05:31.297Z",
+        "message": "move monday's gym to 6pm",
+        "total_ms": 12,
+        "prompt_build_ms": 0,
+        "prompt": {
+          "system_chars": 0,
+          "context_chars": 0,
+          "tool_schema_chars": 0,
+          "tools": 0,
+          "history_messages": 0
+        },
+        "rounds": [],
+        "spans": [
+          {
+            "name": "dry:set_event_time",
+            "start_ms": 1.4,
+            "ms": 3.8,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 5.4,
+            "ms": 2.5,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 7.9,
+            "ms": 3.9,
+            "ok": true
+          },
+          {
+            "name": "commit:set_event_time",
+            "start_ms": 5.4,
+            "ms": 6.6,
+            "ok": true
+          }
+        ],
+        "db_ms": 1,
+        "db_queries": 47,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 29,
+          "tools": [
+            "set_event_time"
+          ]
+        },
+        "route": {
+          "families": [
+            "move"
+          ],
+          "source": "fast_path",
+          "complex": false,
+          "tools": 0,
+          "days": [
+            "2026-09-28"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c21",
+      "kind": "chat",
+      "message": "thanks!",
+      "rep": 1,
+      "now": "2026-09-23T09:42",
+      "total_ms": 1130.7,
+      "rounds": 1,
+      "route": {
+        "families": [
+          "general"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": null,
+        "days": null
+      },
+      "escalated": false,
+      "input_tokens": 3,
+      "cache_read_tokens": 21288,
+      "cache_write_tokens": 3504,
+      "output_tokens": 41,
+      "prompt_build_ms": 1.5,
+      "db_ms": 0.2,
+      "tools": [],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "You're welcome! I'm here whenever you need to adjust your schedule, add events, track internships, or manage your meals. Just let me know what's up. 👋",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdqr5-43",
+        "at": "2026-09-23T07:05:31.313Z",
+        "message": "thanks!",
+        "total_ms": 1130.7,
+        "prompt_build_ms": 1.5,
+        "prompt": {
+          "system_chars": 39342,
+          "context_chars": 7868,
+          "tool_schema_chars": 41217,
+          "tools": 26,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 0,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 618.7,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 41,
+              "cache_read_tokens": 21288,
+              "cache_write_tokens": 3504,
+              "system_chars": 39329,
+              "prompt_chars": 7,
+              "stop_reason": "end_turn"
+            },
+            "start_ms": 1.6,
+            "wall_ms": 1128.8
+          }
+        ],
+        "spans": [],
+        "db_ms": 0.2,
+        "db_queries": 14,
+        "outcome": {
+          "proposals": 0,
+          "applied": 0,
+          "reply_chars": 151,
+          "tools": []
+        },
+        "route": {
+          "families": [
+            "general"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": null,
+          "days": null
+        }
+      }
+    },
+    {
+      "id": "c22",
+      "kind": "create",
+      "message": "block 2 hours to study saturday afternoon",
+      "rep": 1,
+      "now": "2026-09-23T09:43",
+      "total_ms": 3437,
+      "rounds": 2,
+      "route": {
+        "families": [
+          "create"
+        ],
+        "source": "regex",
+        "complex": false,
+        "tools": 5,
+        "days": [
+          "2026-09-23",
+          "2026-09-24",
+          "2026-09-26"
+        ]
+      },
+      "escalated": false,
+      "input_tokens": 8,
+      "cache_read_tokens": 16380,
+      "cache_write_tokens": 1733,
+      "output_tokens": 248,
+      "prompt_build_ms": 2.7,
+      "db_ms": 1.9,
+      "tools": [
+        {
+          "name": "create_event",
+          "status": "approved",
+          "args": {
+            "title": "Study",
+            "kind": "personal",
+            "date": "2026-09-26",
+            "start_time": "14:00",
+            "duration_minutes": 120
+          }
+        }
+      ],
+      "tool_ok": true,
+      "state_ok": true,
+      "correct": true,
+      "errored": false,
+      "fell_back": false,
+      "why": null,
+      "reply": "Added Study — Sat 2 – 4 PM.",
+      "backends": [
+        "anthropic/claude-haiku-4-5-20251001"
+      ],
+      "trace": {
+        "id": "turn-mudrdrmn-44",
+        "at": "2026-09-23T07:05:32.447Z",
+        "message": "block 2 hours to study saturday afternoon",
+        "total_ms": 3437,
+        "prompt_build_ms": 2.7,
+        "prompt": {
+          "system_chars": 18412,
+          "context_chars": 3435,
+          "tool_schema_chars": 9612,
+          "tools": 5,
+          "history_messages": 0
+        },
+        "rounds": [
+          {
+            "round": 0,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 604.9,
+              "api_ms": null,
+              "input_tokens": 3,
+              "output_tokens": 97,
+              "cache_read_tokens": 7379,
+              "cache_write_tokens": 1622,
+              "system_chars": 18399,
+              "prompt_chars": 41,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 2.8,
+            "wall_ms": 1434.7
+          },
+          {
+            "round": 1,
+            "tool_calls": 1,
+            "meta": {
+              "backend": "anthropic",
+              "model": "claude-haiku-4-5-20251001",
+              "tier": "default",
+              "ttft_ms": 615.1,
+              "api_ms": null,
+              "input_tokens": 5,
+              "output_tokens": 151,
+              "cache_read_tokens": 9001,
+              "cache_write_tokens": 111,
+              "system_chars": 18399,
+              "prompt_chars": 109,
+              "stop_reason": "tool_use"
+            },
+            "start_ms": 1440.2,
+            "wall_ms": 1981
+          }
+        ],
+        "spans": [
+          {
+            "name": "read:get_schedule",
+            "start_ms": 1437.6,
+            "ms": 2.5,
+            "ok": true
+          },
+          {
+            "name": "dry:create_event",
+            "start_ms": 3421.3,
+            "ms": 5.9,
+            "ok": true
+          },
+          {
+            "name": "apply.revalidate",
+            "start_ms": 3428,
+            "ms": 4.2,
+            "ok": true
+          },
+          {
+            "name": "apply.commit",
+            "start_ms": 3432.2,
+            "ms": 4.2,
+            "ok": true
+          },
+          {
+            "name": "commit:create_event",
+            "start_ms": 3427.8,
+            "ms": 9,
+            "ok": true
+          }
+        ],
+        "db_ms": 1.9,
+        "db_queries": 53,
+        "outcome": {
+          "proposals": 1,
+          "applied": 1,
+          "reply_chars": 27,
+          "tools": [
+            "create_event"
+          ]
+        },
+        "route": {
+          "families": [
+            "create"
+          ],
+          "source": "regex",
+          "complex": false,
+          "tools": 5,
+          "days": [
+            "2026-09-23",
+            "2026-09-24",
+            "2026-09-26"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -410,6 +410,10 @@ interface RunRecord {
   errored: boolean;
   /** The primary backend failed and another answered. Left out of latency/tokens. */
   fell_back: boolean;
+  /** What the router decided (families, fast path…), if routing ran. */
+  route: TurnTrace['route'] | null;
+  /** Any round ran on the escalated (stronger) model. */
+  escalated: boolean;
   why: string | null;
   reply: string;
   backends: string[];
@@ -535,7 +539,9 @@ async function main(): Promise<void> {
         rep,
         now,
         total_ms: trace.total_ms,
-        rounds: trace.rounds.length,
+        rounds: trace.rounds.filter((r) => r.meta.purpose !== 'route').length,
+        route: trace.route ?? null,
+        escalated: trace.rounds.some((r) => r.meta.tier === 'escalated'),
         input_tokens: sum((r) => r.meta.input_tokens),
         cache_read_tokens: sum((r) => r.meta.cache_read_tokens),
         cache_write_tokens: sum((r) => r.meta.cache_write_tokens),
@@ -586,6 +592,8 @@ async function main(): Promise<void> {
     clean_runs: clean.length,
     errored_runs: runs.filter((r) => r.errored).length,
     fallback_runs: runs.filter((r) => r.fell_back).length,
+    fast_path_runs: runs.filter((r) => r.route?.source === 'fast_path').length,
+    escalated_runs: runs.filter((r) => r.escalated).length,
     backends: [...new Set(runs.flatMap((r) => r.backends))],
     p50_ms: pct(lat, 50),
     p90_ms: pct(lat, 90),
@@ -618,6 +626,7 @@ async function main(): Promise<void> {
   console.log(`| p90 latency (all) | ${s(summary.p90_ms)} |`);
   console.log(`| p50 / p90 simple moves (n=${summary.simple_move_n}) | ${s(summary.simple_move_p50_ms)} / ${s(summary.simple_move_p90_ms)} |`);
   console.log(`| rounds per turn | ${summary.rounds_mean ?? 'n/a'} |`);
+  console.log(`| fast path / escalated to stronger model | ${summary.fast_path_runs} / ${summary.escalated_runs} |`);
   console.log(`| input tokens per turn | ${summary.input_tokens_mean ?? 'n/a'} |`);
   console.log(`| output tokens per turn | ${summary.output_tokens_mean ?? 'n/a'} |`);
   console.log(`| cache hit rate (input) | ${pc(summary.cache_hit_rate)} |`);

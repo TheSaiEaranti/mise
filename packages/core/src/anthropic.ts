@@ -26,7 +26,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { chatCompletion, type ChatCompletionOpts, type ChatCompletionResult, type ChatMessage, type ToolCall } from './ollama';
 import { claudeWithFallback, resolveClaudeBin } from './claude-cli';
-import type { ChatMeta } from './trace';
+import { recordRound, type ChatMeta } from './trace';
 
 export type AnthropicTier = 'default' | 'escalated';
 
@@ -332,6 +332,57 @@ export async function anthropicChatCompletion(opts: ChatCompletionOpts): Promise
     ...(attempts > 1 ? { json_retries: attempts - 1 } : {}),
   };
   return { message: { content: text, tool_calls }, meta };
+}
+
+const ROUTE_LABELS = ['move', 'create', 'recurring', 'cancel', 'reminder', 'preference', 'workout', 'meals', 'internship', 'question', 'general'] as const;
+const ROUTE_SYSTEM =
+  'Classify a message sent to a personal calendar assistant. Reply with exactly one label, nothing else:\n' +
+  'move (change when an existing block happens), create (add a new event), recurring (change which days/how often something repeats, or every block\'s length), ' +
+  'cancel, reminder, preference (a standing rule: always/never/prefer), workout (gym split / lifts), meals (recipes, meal suites), ' +
+  'internship (internship board / applications), question (asks about the schedule, changes nothing), general (anything else or several of these).';
+
+/**
+ * The router's fallback: one tiny call to the default model when the keyword
+ * classifier can't place a message. ~200 input tokens, 3 output. Any failure
+ * → null, and the turn simply gets the full prompt.
+ */
+export async function classifyIntent(message: string): Promise<(typeof ROUTE_LABELS)[number] | null> {
+  const started = performance.now();
+  try {
+    const stream = getClient().messages.stream({
+      model: anthropicModels().default,
+      max_tokens: 5,
+      system: ROUTE_SYSTEM,
+      messages: [{ role: 'user', content: message.slice(0, 500) }],
+    });
+    const msg = await stream.finalMessage();
+    const word = msg.content
+      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+      .map((b) => b.text)
+      .join('')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z]/g, '');
+    const label = (ROUTE_LABELS as readonly string[]).includes(word) ? (word as (typeof ROUTE_LABELS)[number]) : null;
+    recordRound({
+      round: -1,
+      startedAt: started,
+      tool_calls: 0,
+      meta: {
+        backend: 'anthropic',
+        model: msg.model,
+        purpose: 'route',
+        input_tokens: num(msg.usage?.input_tokens),
+        output_tokens: num(msg.usage?.output_tokens),
+        cache_read_tokens: num(msg.usage?.cache_read_input_tokens) ?? 0,
+        cache_write_tokens: num(msg.usage?.cache_creation_input_tokens) ?? 0,
+      },
+    });
+    return label;
+  } catch (e) {
+    console.warn(`[chat] intent classification failed (${errorKind(e)}) — using the full prompt`);
+    return null;
+  }
 }
 
 function errorKind(e: unknown): string {

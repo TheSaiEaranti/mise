@@ -45,6 +45,8 @@ export interface ChatMeta {
   tier?: 'default' | 'escalated';
   /** Anthropic backend: why generation stopped (tool_use, end_turn, max_tokens, refusal). */
   stop_reason?: string | null;
+  /** 'route' = the router's one-word intent classification, not a turn round. */
+  purpose?: 'route';
   /** Anthropic backend: rounds re-issued because a streamed tool input was unparseable. */
   json_retries?: number;
 }
@@ -93,6 +95,16 @@ export interface TurnTrace {
    */
   db_ms: number;
   db_queries: number;
+  /** What the router decided (router.ts), or the fast path. */
+  route?: {
+    families: string[];
+    source: string;
+    complex: boolean;
+    /** Tools sent to the model; null = all of them. */
+    tools: number | null;
+    /** Calendar days in the context; null = the full two-week window. */
+    days: string[] | null;
+  };
   outcome: {
     proposals: number;
     applied: number;

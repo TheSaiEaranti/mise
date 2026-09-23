@@ -58,6 +58,8 @@ const argsSchema = z
       .max(10080)
       .describe(
         'Minutes to shift by: positive = later, negative = earlier. Never 0. ' +
+          '"back", "push back", "push", "later", "delay" are LATER (positive): "back an hour" = +60. ' +
+          '"earlier", "up", "move up", "pull in" are EARLIER (negative). ' +
           'Whole days are multiples of 1440 (tomorrow = +1440). ' +
           'Never emit a timestamp — the tool computes new times.',
       ),

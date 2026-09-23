@@ -340,7 +340,10 @@ describe('agent loop on the API path', () => {
 
     const { proposals } = await runAgentTurn(db, 'push my gym tomorrow an hour', { chat });
     expect(proposals).toHaveLength(1);
-    expect(seen[0]!.system_blocks![0]).toEqual({ text: SYSTEM_PROMPT, cache: true });
+    // Routed: the core rules + the move sections, not the whole manual.
+    expect(seen[0]!.system_blocks![0]!.cache).toBe(true);
+    expect(seen[0]!.system_blocks![0]!.text.startsWith('You are Mise')).toBe(true);
+    expect(seen[0]!.system_blocks![0]!.text.length).toBeLessThan(SYSTEM_PROMPT.length / 2);
     expect(seen[0]!.system_blocks![1]!.cache).toBe(false);
     expect(seen[0]!.system_blocks![1]!.text).toContain('SCHEDULE');
     expect(seen.map((o) => o.tier)).toEqual(['default', 'escalated', 'escalated']);

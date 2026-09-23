@@ -17,7 +17,9 @@ import type { DB } from './db/client';
 import { schema } from './db/client';
 import { chatCompletion, type ChatMessage, type ToolCall } from './ollama';
 import { activeChatBackend, claudeWithFallback } from './claude-cli';
-import { anthropicWithFallback } from './anthropic';
+import { anthropicWithFallback, classifyIntent } from './anthropic';
+import { CORE_SECTIONS, route, routeFor, type Route } from './router';
+import { parseFastIntent, resolveFastCall } from './fast-path';
 import { getModelTool, getTool, modelToolNames, modelToolSpecs } from './tools/index';
 import { createProposal, newId, type ProposalRow } from './proposals';
 import { getInstances, getSemester } from './schedule';
@@ -74,9 +76,13 @@ Hard rules — follow every one of them:
 
 3. If a request is ambiguous ("move stuff back" — which day? earlier or later? by how much?), ask exactly ONE short clarifying question instead of guessing. Do not call a tool until its arguments are clear from what Sai actually said.
 
+3a. DON'T ASK WHAT THE CALENDAR ALREADY ANSWERS. Rule 3 is for real ambiguity only — two readings that would change DIFFERENT events or times. These are NOT ambiguous; act on them: no day named → today (5a); a weekday name → the date the CALENDAR block gives it; a time with am/pm ("6pm") is exact, and a bare "at 6" for gym, cook or social plans is PM; "back", "later", "push" = later and "earlier", "up" = earlier (rule 3's "move stuff back" is vague because it names no day and no amount, not because of the direction); "my gym" / "my cook session" on a day that has exactly one → that one; "everything after 3pm" = every movable block starting at or after 15:00 that day (pinned ones stay, the tools skip them). A clarifying question costs Sai a whole extra round-trip — only ask when guessing could move the wrong thing.
+
 4. Read-only questions ("what's my schedule Thursday?", "what meals do I have imported?") are answered with the read tools: get_schedule and get_meals. They need no approval — call one, then answer from its result. For "what do I need from the store", the shopping list is the ingredient lines on the Meals tab — get_meals shows which meals are there; point him at the tab for the full list.
 
 4b. INTERNSHIPS. The Internships tab is a board of tech internship listings plus Sai's application pipeline. ANY internship question — who's hiring, "any new ML roles this week?", "what have I applied to?" — is ONE search_internships call; it scans the whole board itself, so never call it per company or per day. When Sai reports movement or wants a role tracked — "I applied to Stripe", "got an OA from Jane Street", "Datadog rejected me", "track the Nvidia ML internship" — call track_application with the company, the new status, and a title_hint when he names the role.
+
+4c. "NEXT" / "UPCOMING" QUESTIONS ("when is my next class?", "what's my next thing today?") are answered against the Now line: walk the SCHEDULE table in order and name the FIRST matching row that starts at or after Now — later today counts before tomorrow. Say its day and 12-hour time.
 
 5. TELLING YOU A PLAN IS ASKING YOU TO SCHEDULE IT. When Sai mentions something he is doing at a SET time — "friends coming over at 8", "going out with friends 6-8", "I have a haircut Thursday at 2", "call 3-3:30" — that is a fixed event: call fit_in_event (rule 5al), which pins it at that time AND reflows the movable blocks around it by his rules, in one call. Title in HIS words ("Friends over", "Haircut"), date copied from the CALENDAR block, start_time HH:mm, duration_minutes (default ~2h for a hangout/meal, ~1h for an appointment). Do not reply "noted" and do nothing, and do not ask him to repeat it as a command — hearing it IS the command. (If instead he wants a block of some LENGTH at no fixed time — "study a couple hours Thursday night" — that's create_event, rule 5af.) Only ask if the day genuinely isn't recoverable.
 
@@ -185,6 +191,51 @@ The tools and their arguments:
 // Context window construction (SPEC §4 — keep it under ~2k tokens)
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Prompt sections (router.ts picks which ones a turn needs)
+// ---------------------------------------------------------------------------
+
+function paraId(text: string, i: number): string {
+  const m = /^(\d+[a-z0-9]*)\./.exec(text);
+  if (m) return m[1]!;
+  if (i === 0) return 'intro';
+  if (text.startsWith('Hard rules')) return 'hard';
+  if (text.startsWith('PUTTING GYM SESSIONS')) return 'gymcal';
+  if (text.startsWith('Scheduling facts')) return 'facts';
+  return `p${i}`;
+}
+
+/** SYSTEM_PROMPT split into its paragraphs, each keyed by its rule id. */
+export const PROMPT_SECTIONS: { id: string; text: string }[] = SYSTEM_PROMPT.split('\n\n').map((text, i) => ({
+  id: paraId(text, i),
+  text,
+}));
+
+/**
+ * The system prompt for a routed turn: the core rules every request obeys,
+ * then the sections its intent families need, each in its original order.
+ * null → the full SYSTEM_PROMPT (the 'general' route).
+ */
+export function promptFor(sections: string[] | null): string {
+  if (!sections) return SYSTEM_PROMPT;
+  const core = new Set(CORE_SECTIONS);
+  const want = new Set(sections);
+  return [
+    ...PROMPT_SECTIONS.filter((p) => core.has(p.id)),
+    ...PROMPT_SECTIONS.filter((p) => !core.has(p.id) && want.has(p.id)),
+  ]
+    .map((p) => p.text)
+    .join('\n\n');
+}
+
+/** Tool specs for a routed turn, in registry order (deterministic → cacheable). null → all. */
+function routedToolSpecs(names: string[] | null): unknown[] {
+  const all = modelToolSpecs();
+  if (!names) return all;
+  const want = new Set(names);
+  return all.filter((t) => want.has((t as { function: { name: string } }).function.name));
+}
+
 const MAX_TABLE_ROWS = 60;
 const MAX_PINNED_ROWS = 30;
 
@@ -193,7 +244,22 @@ function clip(s: string, n: number): string {
 }
 
 /** The context block appended after the system prompt. */
-export function buildContext(db: DB): string {
+/**
+ * The "today" the context (and so the model) works from: the real today, or
+ * the term start before the term begins. The router and the fast path resolve
+ * "tomorrow" / "friday" against this same date so nothing disagrees.
+ */
+export function contextToday(db: DB): string {
+  const sem = getSemester(db);
+  const realToday = todayInTz(sem?.timezone ?? DEFAULT_TZ);
+  return sem != null && realToday < sem.start_date ? sem.start_date : realToday;
+}
+
+/**
+ * @param opts.days  Only these dates go into the SCHEDULE / PINNED tables (the
+ *   days the request is about — see router.ts). Omitted: the full window.
+ */
+export function buildContext(db: DB, opts: { days?: string[] | null } = {}): string {
   const sem = getSemester(db);
   const tz = sem?.timezone ?? DEFAULT_TZ;
   const realToday = todayInTz(tz);
@@ -210,7 +276,8 @@ export function buildContext(db: DB): string {
   // set_recurrence) which scan the full schedule themselves, and the model can
   // pull far dates on demand with get_schedule — so we don't widen the prompt.
   const end = addDaysWall(today, 14);
-  const instances = getInstances(db, start, end);
+  const onlyDays = opts.days && opts.days.length > 0 ? new Set(opts.days) : null;
+  const instances = getInstances(db, start, end).filter((i) => !onlyDays || onlyDays.has(i.instance_date));
   const c = effectiveConstraints();
 
   const lines: string[] = [];
@@ -256,9 +323,15 @@ export function buildContext(db: DB): string {
   // that it's already whatever was asked for).
   const workoutName = new Map(getSplit(db).days.map((d) => [d.key, d.name]));
 
-  lines.push(`SCHEDULE ${start} → ${end}:`);
+  if (onlyDays) {
+    // Trimmed to the days this request is about. Say so, or an absent day
+    // reads as an empty one.
+    lines.push(`SCHEDULE — only the days this request is about (${[...onlyDays].sort().join(', ')}); other days are not shown (get_schedule reads any day):`);
+  } else {
+    lines.push(`SCHEDULE ${start} → ${end}:`);
+  }
   if (instances.length === 0) {
-    lines.push('(no events in this window)');
+    lines.push(onlyDays ? '(nothing scheduled on those days)' : '(no events in this window)');
   } else {
     // ID column is load-bearing: cancel_event / reschedule_to_free_slot /
     // shift_events(single) take event_id, and this table is the only place
@@ -457,6 +530,49 @@ export interface AgentDeps {
    * way and moves the gym to exactly where it already was.
    */
   settle?: (proposal: ProposalRow) => Promise<ProposalRow>;
+  /** false = never take the fast path (fast-path.ts). Default on. */
+  fastPath?: boolean;
+}
+
+/**
+ * The fast path (fast-path.ts): parse, resolve against the calendar, then the
+ * SAME spine a model's call takes — dry-run, a Proposal row, the commit gate.
+ * Anything short of a clean, actionable, unblocked dry-run returns null and
+ * the turn goes to the model instead (it explains conflicts; this doesn't).
+ */
+async function tryFastPath(
+  db: DB,
+  userMessage: string,
+  today: string,
+  trace: TurnTrace,
+  deps?: AgentDeps,
+): Promise<{ reply: string; proposals: ProposalRow[] } | null> {
+  // Before the term starts the context anchors "today" at the term start; a
+  // "tomorrow" typed on a real Saturday must not land on the term's Tuesday.
+  if (today !== todayInTz(getSemester(db)?.timezone ?? DEFAULT_TZ)) return null;
+  const intent = parseFastIntent(userMessage);
+  if (!intent) return null;
+  const call = resolveFastCall(db, intent, today);
+  if (!call) return null;
+  const tool = getModelTool(call.tool);
+  if (!tool || tool.kind !== 'mutation') return null;
+  const parsed = tool.argsSchema.safeParse(call.args);
+  if (!parsed.success) return null;
+  const result = await traceSpan(`dry:${call.tool}`, () => tool.run(parsed.data, 'dry'));
+  if (!isActionable(result.diff) || result.conflicts.some((c) => severityOf(c) === 'blocking')) return null;
+
+  const prop = createProposal(db, {
+    user_message: userMessage,
+    tool_name: call.tool,
+    tool_args: parsed.data as Record<string, unknown>,
+    diff: result.diff,
+    conflicts: result.conflicts,
+  });
+  const settled = deps?.settle ? await traceSpan(`commit:${call.tool}`, () => deps.settle!(prop)) : prop;
+  trace.route = { families: ['move'], source: 'fast_path', complex: false, tools: 0, days: [call.date] };
+  const reply = humanizeTimes(describeOutcome([settled]) || formatDiffSummary(result.diff));
+  insertChatMessage(db, 'assistant', reply, settled.id);
+  return { reply, proposals: [settled] };
 }
 
 const MAX_ROUNDS = 4; // model round-trips per user turn
@@ -556,7 +672,42 @@ async function runAgentTurnInner(
 
   insertChatMessage(db, 'user', userMessage, null);
 
-  const context = buildContext(db);
+  const today = contextToday(db);
+
+  // Fast path: "move my gym to 6pm" and friends need no model at all. Like the
+  // early exit, it's for callers with a commit policy (the chat route, the
+  // eval): without one nothing is final, and the turn stays model-driven.
+  if (!compact && deps?.settle && deps.fastPath !== false && process.env.MISE_FAST_PATH !== '0') {
+    const fast = await tryFastPath(db, userMessage, today, trace, deps);
+    if (fast) return fast;
+  }
+
+  // Route: which tools, prompt sections and days this turn needs. When the
+  // keywords don't place it, the API backend asks the small model once; any
+  // other backend (or a failed classification) gets the full prompt.
+  let turnRoute: Route | null = compact ? null : route(userMessage, today);
+  // An answer to the assistant's own question ("which day?" → "thursday, 6
+  // to 8") only makes sense with the question: full prompt, stronger model.
+  const lastRow = history[history.length - 1];
+  if (turnRoute && lastRow?.role === 'assistant' && lastRow.proposal_id === null && lastRow.content.trim().endsWith('?')) {
+    turnRoute = { ...routeFor(['general'], userMessage, today, 'regex'), complex: true };
+  }
+  if (turnRoute && turnRoute.source === 'fallback' && backend === 'anthropic') {
+    const family = await classifyIntent(userMessage);
+    if (family && family !== 'general') turnRoute = routeFor([family], userMessage, today, 'model');
+  }
+  if (turnRoute) {
+    trace.route = {
+      families: turnRoute.families,
+      source: turnRoute.source,
+      complex: turnRoute.complex,
+      tools: turnRoute.tools?.length ?? null,
+      days: turnRoute.days,
+    };
+  }
+  const systemPrompt = promptFor(turnRoute?.sections ?? null);
+
+  const context = buildContext(db, { days: turnRoute?.days ?? null });
   const contextChars = context.length;
   const messages: ChatMessage[] = [
     // `/no_think` turns OFF qwen3's reasoning pass. It used to generate a long
@@ -569,7 +720,7 @@ async function runAgentTurnInner(
       role: 'system',
       content: compact
         ? COMPACT_SYSTEM + '\n\n' + context + '\n\n/no_think'
-        : SYSTEM_PROMPT + '\n\n' + context + '\n\n/no_think',
+        : systemPrompt + '\n\n' + context + '\n\n/no_think',
     },
     // An assistant row with a proposal_id is a RECEIPT this code wrote after a
     // tool ran ("Create Going out with friends · Wed Jul 15"). Fed back verbatim
@@ -591,7 +742,7 @@ async function runAgentTurnInner(
   // Prompt build = history load + context + assembly (the user-row insert is
   // in here too; it is one statement).
   trace.prompt_build_ms = Math.round((performance.now() - promptStart) * 10) / 10;
-  const toolSpecs = compact ? [] : modelToolSpecs();
+  const toolSpecs = compact ? [] : routedToolSpecs(turnRoute?.tools ?? null);
   trace.prompt = {
     system_chars: messages[0]!.content.length,
     context_chars: contextChars,
@@ -632,11 +783,11 @@ async function runAgentTurnInner(
    * + validate()) is untouched either way; escalation is about getting a
    * well-formed call, never about getting past a refusal.
    */
-  let escalated = false;
+  let escalated = turnRoute?.complex ?? false; // the router marks compound / open-ended turns
   // The static prompt is one cached block; the per-turn context (Now line,
   // schedule) comes after the cache breakpoint so it can't invalidate it.
   const systemBlocks = [
-    { text: SYSTEM_PROMPT, cache: true },
+    { text: systemPrompt, cache: true },
     { text: context, cache: false },
   ];
 
@@ -649,7 +800,7 @@ async function runAgentTurnInner(
           ? { messages, temperature: 0.1, max_tokens: 512 }
           : {
               messages,
-              tools: modelToolSpecs(),
+              tools: toolSpecs,
               tool_choice: 'auto',
               temperature: 0.1,
               system_blocks: systemBlocks,
@@ -699,6 +850,11 @@ async function runAgentTurnInner(
     messages.push({ role: 'assistant', content: res.message.content ?? '', tool_calls: taken });
     /** Tools already charged a schema retry this round (parallel calls share one). */
     const retriedThisRound = new Set<string>();
+    /** Something this round needs the model to react to (see the early exit below). */
+    let needsModel = false;
+    let roundMutations = 0;
+    /** A committed first half of a two-call rule (5am: a new buffer, then fix the violating days). */
+    let followUpRule = false;
 
     for (const call of taken) {
       const name = call.function.name;
@@ -711,6 +867,7 @@ async function runAgentTurnInner(
         // exists but is hidden from the model (setup_semester) was blocked on
         // purpose; a stronger model wouldn't change that.
         if (!getTool(name)) escalated = true;
+        needsModel = true;
         messages.push(
           toolMsg(call, `Unknown tool "${name}". Available: ${availableToolNames().join(', ')}. Use one of these or answer in plain text.`),
         );
@@ -742,6 +899,7 @@ async function runAgentTurnInner(
           retriedThisRound.add(name);
         }
         escalated = true;
+        needsModel = true;
         messages.push(
           toolMsg(call, `Invalid arguments for ${name}: ${parseError}. Call ${name} again with corrected arguments.`),
         );
@@ -749,6 +907,7 @@ async function runAgentTurnInner(
       }
 
       if (tool.kind === 'read') {
+        needsModel = true; // the model has to read the data to answer
         // Read tools skip the proposal flow entirely; feed the data back and
         // loop for the model's natural-language answer.
         try {
@@ -794,6 +953,7 @@ async function runAgentTurnInner(
             ),
           );
           seenMutations.delete(fingerprint); // it never happened
+          needsModel = true; // it has to tell Sai the true thing
           continue;
         }
 
@@ -839,6 +999,14 @@ async function runAgentTurnInner(
         // it already was.
         const settled = deps?.settle ? await traceSpan(`commit:${name}`, () => deps.settle!(prop)) : prop;
         proposals.push(settled);
+        roundMutations++;
+        if (name === 'set_preference' && (args as { type?: string }).type === 'buffer') followUpRule = true;
+        // Refused by the gate (a blocking conflict): the model gets a round to
+        // react. Pending for a policy reason (a cancel waits for its confirm
+        // card) is a finished outcome — the reply already asks for the tap.
+        if (settled.status !== 'approved' && (settled.conflicts as Conflict[]).some((c) => severityOf(c) === 'blocking')) {
+          needsModel = true;
+        }
 
         // Tell the model what actually happened, so it can react (e.g. having
         // added the friends block, notice the gym now overlaps it).
@@ -857,9 +1025,20 @@ async function runAgentTurnInner(
         }
         if (proposals.length >= MAX_MUTATIONS_PER_TURN) break;
       } catch (e) {
+        needsModel = true;
         messages.push(toolMsg(call, `Tool ${name} failed: ${errText(e)}`));
       }
     }
+
+    // END THE TURN EARLY. Every change this round committed (or is waiting on
+    // its confirm card) and nothing errored, conflicted or needs reading — the
+    // reply is written from the committed diffs (describeOutcome), so another
+    // model round would only produce prose that gets thrown away. It cost a
+    // whole round on every successful edit (eval/latency/before.json: 31/31).
+    // Only with a commit policy (deps.settle): without one nothing is final.
+    // Not on compound turns (the next request may need this change committed
+    // first) or after a new buffer rule (5am: then move the violating days).
+    if (deps?.settle && roundMutations > 0 && !needsModel && !turnRoute?.complex && !followUpRule) break;
 
     // Keep going. A compound request — "friends are over 6-7, adjust my gym" —
     // is two changes, and the model usually books the first, then needs another

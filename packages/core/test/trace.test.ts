@@ -72,7 +72,8 @@ describe('turn trace', () => {
   test('records every round, the tool dry-run, the commit, and DB time', async () => {
     const { trace } = await runAgentTurn(db, 'move my gym an hour later', {
       chat: scripted([shiftCall, { message: { content: 'Done.' } }]),
-      settle: async (p) => p,
+      // Refused by the gate: the model gets a second round to react.
+      settle: async (p) => ({ ...p, conflicts: [{ type: 'pinned_moved', event_id: 'x', title: 'CS', instance_date: tomorrow } as never] }),
     });
 
     expect(trace.rounds).toHaveLength(2);
@@ -84,7 +85,9 @@ describe('turn trace', () => {
     expect(trace.spans.every((s) => s.ok && s.ms >= 0)).toBe(true);
     expect(trace.db_queries).toBeGreaterThan(0);
     expect(trace.total_ms).toBeGreaterThanOrEqual(trace.rounds[1]!.start_ms);
-    expect(trace.prompt.tools).toBeGreaterThan(10);
+    // Routed to the move family: its handful of tools, not all 26.
+    expect(trace.route).toMatchObject({ families: ['move'], source: 'regex' });
+    expect(trace.prompt.tools).toBe(6);
     expect(trace.prompt.system_chars).toBeGreaterThan(trace.prompt.context_chars);
     expect(trace.outcome).toMatchObject({ proposals: 1, applied: 0, tools: ['shift_events'] });
   });
