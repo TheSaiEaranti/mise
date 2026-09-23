@@ -42,4 +42,4 @@ const fx = seedDemoSemester(db, todayInTz());
 const n = db.select().from(schema.event).all().length;
 console.log(`Seeded the demo semester into ${process.env.MISE_DB_PATH}`);
 console.log(`  ${fx.semester.start} → ${fx.semester.end}, ${n} events, today = ${fx.today}`);
-console.log('  Run the app on it:  bun run dev:demo');
+console.log('  Already running? Just reload the page. Otherwise, in two terminals: bun run demo:api  /  bun run demo:web  (see DEMO.md)');
