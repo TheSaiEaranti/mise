@@ -92,6 +92,78 @@ describe('set_preference', () => {
     expect(buffers.find((b) => b.kind === 'gym')).toEqual(gymBefore); // gym rule survived
   });
 
+  test('a gym-after-class buffer MERGES with the default gym-after-cook one (cook rule survives)', async () => {
+    // The bug: "from now on leave 30 min after class before the gym" upserted
+    // the ONE gym buffer, replacing after_kinds ['cook'] with ['class'], so
+    // "no gym right after cook" silently vanished.
+    const gymRows = () => getPreferences(db).buffers.filter((b) => b.kind === 'gym');
+    expect(gymRows()).toEqual([{ kind: 'gym', after_kinds: ['cook'], gap_minutes: 30 }]); // the default
+
+    const { diff, conflicts } = await setPreferenceTool.run(
+      { type: 'buffer', kind: 'gym', after_kinds: ['class'], gap_minutes: 30 } as never,
+      'commit',
+    );
+    expect(conflicts).toEqual([]);
+    expect(diff.pref_changes).toEqual(['no gym within 30 min after class']);
+    expect(gymRows()).toEqual([{ kind: 'gym', after_kinds: ['cook', 'class'], gap_minutes: 30 }]);
+
+    // The engine still holds the gym off the cook: friends 6–8 → cook 8–9, gym
+    // 9:30 (not 9:00, which is where it lands if the cook rule is gone).
+    const cookDay = reflowDay(db, DATE, anchorAt('18:00', '20:00'));
+    expect(cookDay.knockOns.find((k) => k.event_id === 'cook')!.after!.starts_at).toBe(`${DATE}T20:00`);
+    expect(cookDay.knockOns.find((k) => k.event_id === 'gym')!.after!.starts_at).toBe(`${DATE}T21:30`);
+
+    // ...and the new class rule is live too: a gym flush against a class slides to class end + 30.
+    const D = '2026-09-10';
+    db.insert(schema.event)
+      .values([
+        { id: 'clsA', semester_id: 's1', title: 'CLASS A', kind: 'class', starts_at: `${D}T15:30`, ends_at: `${D}T17:00`, pinned: true, rrule: null, source: 'manual', location: null, notes: null, color: null, workout: null },
+        { id: 'gymA', semester_id: 's1', title: 'Gym', kind: 'gym', starts_at: `${D}T17:00`, ends_at: `${D}T18:30`, pinned: false, rrule: null, source: 'manual', location: null, notes: null, color: null, workout: 'legs' },
+      ])
+      .run();
+    const classDay = reflowDay(db, D, null, { forceOrder: ['gym'] });
+    expect(classDay.knockOns.find((k) => k.event_id === 'gymA')?.after).toEqual({ starts_at: `${D}T17:30`, ends_at: `${D}T19:00` });
+  });
+
+  test('a new gap applies only to the after_kinds named; the others keep theirs', async () => {
+    const gymRows = () => getPreferences(db).buffers.filter((b) => b.kind === 'gym');
+    await setPreferenceTool.run({ type: 'buffer', kind: 'gym', after_kinds: ['class'], gap_minutes: 45 } as never, 'commit');
+    expect(gymRows()).toEqual([
+      { kind: 'gym', after_kinds: ['cook'], gap_minutes: 30 },
+      { kind: 'gym', after_kinds: ['class'], gap_minutes: 45 },
+    ]);
+
+    // Bringing class down to 30 folds it back into the cook row.
+    await setPreferenceTool.run({ type: 'buffer', kind: 'gym', after_kinds: ['class'], gap_minutes: 30 } as never, 'commit');
+    expect(gymRows()).toEqual([{ kind: 'gym', after_kinds: ['cook', 'class'], gap_minutes: 30 }]);
+
+    const again = await setPreferenceTool.run({ type: 'buffer', kind: 'gym', after_kinds: ['class'], gap_minutes: 30 } as never, 'commit');
+    expect(again.conflicts.some((c) => c.type === 'constraint' && c.rule === 'already')).toBe(true);
+  });
+
+  test('remove: true drops just the named after_kind, or the whole buffer when none is named', async () => {
+    const gymRows = () => getPreferences(db).buffers.filter((b) => b.kind === 'gym');
+    await setPreferenceTool.run({ type: 'buffer', kind: 'gym', after_kinds: ['class'], gap_minutes: 30 } as never, 'commit');
+
+    const dropCook = await setPreferenceTool.run({ type: 'buffer', kind: 'gym', after_kinds: ['cook'], remove: true } as never, 'commit');
+    expect(dropCook.conflicts).toEqual([]);
+    expect(dropCook.diff.pref_changes).toEqual(['removed the gym buffer after cook']);
+    expect(gymRows()).toEqual([{ kind: 'gym', after_kinds: ['class'], gap_minutes: 30 }]); // class rule kept
+
+    const noCook = await setPreferenceTool.run({ type: 'buffer', kind: 'gym', after_kinds: ['cook'], remove: true } as never, 'commit');
+    expect(noCook.conflicts.some((c) => c.type === 'constraint' && c.rule === 'already')).toBe(true);
+
+    const dropAll = await setPreferenceTool.run({ type: 'buffer', kind: 'gym', remove: true } as never, 'commit');
+    expect(dropAll.diff.pref_changes).toEqual(['removed the gym buffer']);
+    expect(gymRows()).toEqual([]);
+  });
+
+  test('gap_minutes 0 still removes, scoped to the named after_kinds', async () => {
+    await setPreferenceTool.run({ type: 'buffer', kind: 'gym', after_kinds: ['class'], gap_minutes: 30 } as never, 'commit');
+    await setPreferenceTool.run({ type: 'buffer', kind: 'gym', after_kinds: ['class'], gap_minutes: 0 } as never, 'commit');
+    expect(getPreferences(db).buffers.filter((b) => b.kind === 'gym')).toEqual([{ kind: 'gym', after_kinds: ['cook'], gap_minutes: 30 }]);
+  });
+
   test('changing the ordering rule FLIPS how the day reflows', () => {
     // Default (cook before gym): friends 6–8 → cook first, gym after.
     const before = reflowDay(db, DATE, anchorAt('18:00', '20:00'));

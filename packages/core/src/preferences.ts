@@ -29,6 +29,10 @@ export interface OrderRule {
  * before the gym" is kind 'gym' after ['class']; "a break between class and
  * cooking" is kind 'cook' after ['class']. The reflow engine leaves the gap
  * whether the earlier block is fixed (a class) or movable (a cook).
+ *
+ * Gaps key by (kind, after_kind): set_preference MERGES a new after_kind into
+ * the kind's buffer rather than replacing it, so one kind can span several rows,
+ * one per distinct gap (gym 30 after cook, gym 45 after class).
  */
 export interface BufferRule {
   kind: string;
