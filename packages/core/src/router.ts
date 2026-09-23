@@ -82,7 +82,7 @@ const RX: Record<Exclude<Family, 'general' | 'question'>, RegExp> = {
   meals: /\b(?:recipes?|ingredients?|suites?|shopping list)\b|\bmeals?\b(?! prep)/,
   workout: /\b(?:split|workout (?:label|split|day)|lifts?|bench|squat|deadlift|ohp|leg day|legs day|chest and back|shoulders(?: and arms)?|sets? of|reps?)\b/,
   // Rule-shaped only: "never mind" / "I never make it by 5" are not rules.
-  preference: /\b(?:from now on|(?:always|never) (?:schedule|put|have|do|want|keep|leave|book|plan|cook|gym|go|make|let|give)|i prefer|prefer to|prefer my|i like to|buffer|(?:gap|break) (?:between|after|before)|leave \d+ ?(?:min|minutes|mins|hours?) (?:after|before|between)|sleep (?:hours|window|from|is))\b/,
+  preference: /\b(?:from now on|(?:always|never) (?:schedule|put|have|do|want|keep|leave|book|plan|cook|gym|go|make|let|give)|i prefer|prefer to|prefer my|i like to|buffer|(?:gap|break) (?:between \w+ and|after|before)|leave \d+ ?(?:min|minutes|mins|hours?) (?:after|before|between)|sleep (?:hours|window|from|is))\b/,
   recurring: new RegExp(
     String.raw`\b(?:only (?:on )?${WD}|no \w+ on ${WD}s|(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday)s\b|weekends|weekdays|every (?:\d+|other|two|three|four) days?|each week|every week|weekly|times a week|x a week|days a week|recurring|repeat|same as ${WD}|copy ${WD}|(?:sessions|blocks) (?:\d+|an?|one|two|three) ?(?:hours?|hrs?|min(?:ute)?s?) long|(?:\d+|an?|one|two|three) ?(?:hours?|hrs?|min(?:ute)?s?) long|between my (?:two )?classes|around my class)`,
   ),
@@ -166,6 +166,23 @@ function isComplex(message: string, families: Family[]): boolean {
   const mutating = families.filter((f) => MUTATING.has(f));
   if (mutating.length >= 2) return true;
   return /\b(?:rearrange|reorganize|re-?plan|plan (?:my|out)|optimi[sz]e|balance|lighten|free up|whenever|on (?:the )?days (?:i|when|that)|every day (?:i|that|when))\b/.test(m);
+}
+
+/**
+ * Which way Sai asked for something to move, when he said so unambiguously.
+ * null when the message names no direction, or both ("gym later and cook
+ * earlier"), or only a word that reads either way ("forward").
+ */
+export function requestedDirection(message: string): 'later' | 'earlier' | null {
+  const m = normalize(message);
+  // A move verb and "back" / "up" in the same clause ("shift everything after
+  // 3pm tomorrow back an hour", "move my gym up an hour") — not "chest and back".
+  // "back to 5pm" is a return, which can go either way — it doesn't count.
+  const mm = m.replace(/\bback to\b/g, 'to');
+  const later = /\b(?:later|delay|postpone)\b|\b(?:push|shift|move|bump|slide)\b[^.,;!?]*\bback\b|\bpush(?:ed)?\b/.test(mm);
+  const earlier = /\b(?:earlier|sooner)\b|\b(?:move|bump|shift|pull|push)\b[^.,;!?]*\bup\b|\bpull (?:it |them |\w+ )?in\b|\bbring (?:it |them |\w+ )?forward\b/.test(mm);
+  if (later === earlier) return null;
+  return later ? 'later' : 'earlier';
 }
 
 /** Resolve the calendar dates a message mentions, the way the CALENDAR block does. */

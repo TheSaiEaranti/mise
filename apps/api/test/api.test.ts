@@ -711,8 +711,10 @@ describe('one change per event per turn', () => {
   const at = (id: string) => db.select().from(schema.event).where(eq(schema.event.id, id)).get()!.starts_at;
 
   test('a day-scoped shift plus a redundant single shift of the same event moves it ONCE', async () => {
-    // Gym is at 16:00 on Tue in the fixture; both calls mean "back 30 minutes".
-    const { proposals } = await runAgentTurn(db, 'push everything after 3pm back 30 minutes', {
+    // Gym is at 16:00 on Tue in the fixture; both calls mean "30 minutes earlier".
+    // (The message used to say "push … back", which reads as LATER — the
+    // direction guard now refuses a −30 answer to that, as it should.)
+    const { proposals } = await runAgentTurn(db, 'move everything after 3pm 30 minutes earlier', {
       chat: fakeChat([
         { name: 'shift_events', args: { scope: 'day', date: '2026-07-14', delta_minutes: -30, after_time: '15:00' } },
         {

@@ -8,7 +8,7 @@ process.env.MISE_SETTINGS_PATH = '/nonexistent/mise-router-test-settings.json';
 
 import { resetDbForTests, schema, type DB } from '../src/db/client';
 import { buildContext, promptFor, PROMPT_SECTIONS, runAgentTurn, SYSTEM_PROMPT } from '../src/agent';
-import { CORE_SECTIONS, FAMILY_SECTIONS, FAMILY_TOOLS, resolveDays, route } from '../src/router';
+import { CORE_SECTIONS, FAMILY_SECTIONS, FAMILY_TOOLS, requestedDirection, resolveDays, route } from '../src/router';
 import { parseFastIntent, resolveFastCall } from '../src/fast-path';
 import { getModelTool } from '../src/tools/index';
 import { addDaysWall, todayInTz, weekdayCode } from '../src/time';
@@ -51,6 +51,16 @@ describe('router', () => {
     expect(fam('add a 30-min break between class and cooking lunch')).toEqual(['preference']);
     expect(fam('never mind, push the gym back an hour')).toEqual(['move']); // "never mind" is not a rule
     expect(fam('remind me to move my car tomorrow')).toEqual(['reminder']);
+  });
+
+  test('reads which way Sai asked for something to move — only when unambiguous', () => {
+    expect(requestedDirection('move the career fiar a little later, i want a break between classes')).toBe('later');
+    expect(requestedDirection('shift everything after 3pm tomorrow back an hour')).toBe('later');
+    expect(requestedDirection('move my gym up an hour')).toBe('earlier');
+    expect(requestedDirection('move my cook session on tuesday 30 minutes earlier')).toBe('earlier');
+    for (const m of ['move gym later and cook earlier', 'move my gym forward 30 min', 'tuesday is chest and back', 'move my gym back to 5pm', 'move my gym to 6pm']) {
+      expect(requestedDirection(m)).toBeNull();
+    }
   });
 
   test('unplaceable messages fall back to the full prompt and every tool', () => {
@@ -217,6 +227,33 @@ describe('ending the turn early', () => {
     const settle = async (p: ProposalRow) => ({ ...p, status: 'approved' as const });
     await runAgentTurn(db, 'dinner with sam at 8 tomorrow, push the gym back an hour', { chat, settle, fastPath: false });
     expect(seen).toHaveLength(2);
+  });
+
+  test('a move the opposite way from what he asked is never filed — the model has to explain instead', async () => {
+    // The live bug: "a little later" came back as −30 min (later would have
+    // hit a pinned class), and the career fair moved earlier.
+    const wrong: ChatCompletionResult = {
+      message: {
+        content: '',
+        tool_calls: [{ id: 'w', type: 'function', function: { name: 'shift_events', arguments: JSON.stringify({ scope: 'single', date: tomorrow, event_id: 'gym1', expect_title: 'Gym', delta_minutes: -30 }) } }],
+      },
+    };
+    const { chat, seen } = counting([wrong, { message: { content: 'Later runs into your study group at 7:30 — want it earlier instead?' } }]);
+    const settle = async (p: ProposalRow) => ({ ...p, status: 'approved' as const });
+    const { reply, proposals } = await runAgentTurn(db, 'move the gym tomorrow a little later', { chat, settle, fastPath: false });
+    expect(proposals).toHaveLength(0);
+    expect(db.select().from(schema.proposal).all()).toHaveLength(0);
+    expect(db.select().from(schema.event).all().find((e) => e.id === 'gym1')!.starts_at).toBe(`${tomorrow}T16:00`);
+    const toolMsg = seen[1]!.messages.find((m) => m.role === 'tool')!;
+    expect(toolMsg.content).toContain('NOT applied');
+    expect(reply).toContain('want it earlier instead?');
+  });
+
+  test('the same move in the direction he asked goes through', async () => {
+    const { chat } = counting([shift('ok')]);
+    const settle = async (p: ProposalRow) => ({ ...p, status: 'approved' as const });
+    const { proposals } = await runAgentTurn(db, 'move the gym tomorrow a little later', { chat, settle, fastPath: false });
+    expect(proposals.map((p) => p.tool_name)).toEqual(['shift_events']);
   });
 
   test('without a commit policy nothing is final, so the loop behaves as before', async () => {

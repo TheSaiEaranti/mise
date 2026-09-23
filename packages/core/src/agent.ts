@@ -18,7 +18,7 @@ import { schema } from './db/client';
 import { chatCompletion, type ChatMessage, type ToolCall } from './ollama';
 import { activeChatBackend, claudeWithFallback } from './claude-cli';
 import { anthropicWithFallback, classifyIntent } from './anthropic';
-import { CORE_SECTIONS, FAMILY_SECTIONS, FAMILY_TOOLS, route, routeFor, type Route } from './router';
+import { CORE_SECTIONS, FAMILY_SECTIONS, FAMILY_TOOLS, requestedDirection, route, routeFor, type Route } from './router';
 import { parseFastIntent, resolveFastCall } from './fast-path';
 import { getModelTool, getTool, modelToolNames, modelToolSpecs } from './tools/index';
 import { createProposal, newId, type ProposalRow } from './proposals';
@@ -465,9 +465,18 @@ export function formatDiffSummary(diff: Diff): string {
 export function describeOutcome(proposals: ProposalRow[]): string {
   const done: string[] = [];
   const asks: string[] = [];
+  const refused: string[] = [];
 
   for (const p of proposals) {
     const diff = p.diff as Diff;
+    // Refused by the validator (a pinned class in the way, …): there is nothing
+    // to approve. Say it didn't happen, and why — "approve it below" over a card
+    // with no Approve button is the same kind of false sentence.
+    const blocking = p.status !== 'approved' ? ((p.conflicts as Conflict[] | undefined) ?? []).find((c) => severityOf(c) === 'blocking') : undefined;
+    if (blocking) {
+      refused.push(`Couldn't ${diff.summary.charAt(0).toLowerCase()}${diff.summary.slice(1)} — ${describeConflict(blocking)}`);
+      continue;
+    }
     // Applied already, or still waiting on Sai? Past tense vs. present — saying
     // "Cancelled your cook session" about something that has not happened yet is
     // the same class of lie this function exists to prevent.
@@ -520,6 +529,7 @@ export function describeOutcome(proposals: ProposalRow[]): string {
 
   const lines = [...done];
   if (asks.length > 0) lines.push(`${asks.join('. ')} — approve it below`);
+  lines.push(...refused);
   return lines.length > 0 ? `${lines.join('. ')}.` : '';
 }
 
@@ -1043,6 +1053,33 @@ async function runAgentTurnInner(
           continue;
         }
 
+        // DO WHAT HE ASKED, NOT THE OPPOSITE. "Move the career fair a little
+        // later" once came back as −30 min: later would have run into a pinned
+        // class, so the model quietly moved it earlier instead. Nothing unsafe
+        // — the validator had nothing to refuse — just not what Sai said. When
+        // the message names one direction, a move the other way is not filed;
+        // the model is told to explain the conflict and offer the alternative.
+        const wanted = requestedDirection(userMessage);
+        const asked = result.diff.changes.filter((c) => c.knock_on !== true && c.before && c.after);
+        const wrongWay =
+          wanted !== null &&
+          asked.length > 0 &&
+          asked.every((c) => (wanted === 'later' ? c.after!.starts_at < c.before!.starts_at : c.after!.starts_at > c.before!.starts_at));
+        if (wrongWay) {
+          const c = asked[0]!;
+          messages.push(
+            toolMsg(
+              call,
+              `${name} was NOT applied: Sai asked for ${wanted}, but this moves ${c.title} ${wanted === 'later' ? 'EARLIER' : 'LATER'} ` +
+                `(${fmt12(c.before!.starts_at)} → ${fmt12(c.after!.starts_at)}). Never do the opposite of what he asked. ` +
+                `If ${wanted} doesn't work, tell him plainly what's in the way and ask whether he wants the alternative.`,
+            ),
+          );
+          seenMutations.delete(fingerprint);
+          needsModel = true;
+          continue;
+        }
+
         // Two calls in one turn must never touch the same event instance. The
         // (tool,args) fingerprint above only catches byte-identical duplicates,
         // and the model can express the same move two ways — a day-scoped shift
@@ -1154,7 +1191,14 @@ async function runAgentTurnInner(
   // When nothing changed — a question answered, a refusal, a clarification —
   // the model speaks for itself. There is nothing there to get wrong.
   const outcome = proposals.length > 0 ? describeOutcome(proposals) : '';
-  if (outcome) {
+  const allRefused =
+    proposals.length > 0 &&
+    proposals.every((p) => p.status !== 'approved' && ((p.conflicts as Conflict[] | undefined) ?? []).some((c) => severityOf(c) === 'blocking'));
+  if (outcome && allRefused && lastContent) {
+    // Nothing changed, so the model's own words can't misreport a change —
+    // and they usually carry the useful part: the alternative it's offering.
+    reply = `${outcome} ${lastContent}`;
+  } else if (outcome) {
     reply = outcome;
   } else if (!reply) {
     if (lastContent) {
