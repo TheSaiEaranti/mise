@@ -1,0 +1,36 @@
+{
+  "name": "@mise/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./time": "./src/time.ts",
+    "./db": "./src/db/client.ts",
+    "./schema": "./src/db/schema.ts",
+    "./validator": "./src/validator.ts",
+    "./schedule": "./src/schedule.ts",
+    "./details": "./src/details.ts",
+    "./proposals": "./src/proposals.ts",
+    "./ollama": "./src/ollama.ts",
+    "./schedule-import": "./src/schedule-import.ts",
+    "./undo": "./src/undo.ts",
+    "./recurrence": "./src/recurrence.ts",
+    "./units": "./src/units.ts",
+    "./groceries": "./src/groceries.ts",
+    "./tools": "./src/tools/index.ts",
+    "./agent": "./src/agent.ts",
+    "./recipe-import": "./src/recipe-import.ts"
+  },
+  "dependencies": {
+    "@mise/config": "workspace:*",
+    "date-fns": "^4.1.0",
+    "@date-fns/tz": "^1.2.0",
+    "drizzle-orm": "^0.39.3",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.30.4"
+  }
+}

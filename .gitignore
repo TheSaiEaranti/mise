@@ -1,0 +1,23 @@
+node_modules/
+.next/
+out/
+dist/
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+data/settings.local.json
+apps/desktop/src-tauri/target/
+.DS_Store
+*.log
+.env
+data/internship-alerts.json
+
+# local-only: personal data, model weights, misc
+finetune/fused/
+finetune/adapters/
+finetune/data/
+finetune/long-result.txt
+Screenshot*.png
+*.pdf
+.claude/

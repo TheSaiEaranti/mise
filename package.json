@@ -1,0 +1,26 @@
+{
+  "name": "mise",
+  "private": true,
+  "workspaces": [
+    "apps/api",
+    "apps/web",
+    "packages/*",
+    "config"
+  ],
+  "scripts": {
+    "dev": "bun run scripts/dev.ts",
+    "dev:api": "bun --watch apps/api/src/index.ts",
+    "dev:web": "bun run --cwd apps/web dev",
+    "test": "bun test packages config apps/api",
+    "typecheck": "tsc -p packages/core && tsc -p apps/api && bun run --cwd apps/web typecheck",
+    "seed": "bun run scripts/seed.ts",
+    "db:generate": "drizzle-kit generate --config packages/core/drizzle.config.ts",
+    "db:migrate": "bun run scripts/migrate.ts",
+    "setup": "bash scripts/setup.sh"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "drizzle-kit": "^0.30.4",
+    "@types/bun": "^1.2.0"
+  }
+}

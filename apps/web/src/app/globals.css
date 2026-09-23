@@ -1,0 +1,144 @@
+@import 'tailwindcss';
+
+/* ============================================================
+   DESIGN.md tokens — the whole palette is six values.
+   Depth encodes exactly one thing: what can move and what can't.
+   ============================================================ */
+
+:root {
+  --paper: #ffffff; /* the page. everything sits on this. */
+  --recessed: #f2f4f7; /* pinned event fill. carved out of the paper. */
+  --rule: #e7e9ec; /* grid lines, dividers, card borders. hairlines only. */
+  --ink: #16181d; /* primary text. near-black, never pure #000. */
+  --ink-soft: #6b7280; /* secondary text. WCAG AA on paper. no lighter. */
+  --ink-lock: #3e4a5c; /* text inside pinned events. cool-shifted. */
+
+  /* THE accent. Only for: now line, unapproved diff highlights, blocking
+     conflicts. Not links. Not buttons. Not focus. */
+  --signal: #c2410c;
+
+  /* raised — movable events. sits ON the paper. */
+  --lift: 0 1px 2px rgba(22, 24, 29, 0.04), 0 2px 8px rgba(22, 24, 29, 0.04);
+  /* raised, active — while dragging */
+  --lift-drag: 0 4px 12px rgba(22, 24, 29, 0.08), 0 12px 32px rgba(22, 24, 29, 0.06);
+  /* recessed — pinned events. sits IN the paper. */
+  --inset: inset 0 1px 2px rgba(62, 74, 92, 0.06);
+
+  --r: 6px; /* the only radius. */
+
+  --font-ui: var(--font-inter-tight), 'Inter Tight', system-ui, sans-serif;
+  --font-num: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
+
+  --ease: cubic-bezier(0.32, 0.72, 0, 1); /* the only easing curve */
+  --fast: 120ms; /* hover, press */
+  --base: 200ms; /* cards appearing, panels */
+  --slow: 320ms; /* view transitions, diff card entrance */
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-recessed: var(--recessed);
+  --color-rule: var(--rule);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-lock: var(--ink-lock);
+  --color-signal: var(--signal);
+
+  --shadow-lift: var(--lift);
+  --shadow-lift-drag: var(--lift-drag);
+  --shadow-inset-pin: var(--inset);
+
+  --radius-r: var(--r);
+
+  --font-ui: var(--font-ui);
+  --font-num: var(--font-num);
+
+  --ease-app: var(--ease);
+
+  /* Space: 4px base. Only these steps. */
+  --spacing: 4px;
+}
+
+html,
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Type scale — five sizes, no more. */
+.t-display {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.t-body {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+/* The chat input. 16px is the floor below which mobile Safari zooms the page on
+ * focus — the "I can barely see what I'm typing". A native <input> also does NOT
+ * inherit the app font or color, so both are set here explicitly. */
+.t-input {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  font-family: var(--font-ui);
+  color: var(--ink);
+}
+.t-label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+.t-time {
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+.t-micro {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Every interactive element: visible keyboard focus. Not orange. */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* The thinking indicator: ONE pulsing dot, on the app's only easing curve.
+   Not three bouncing dots, not a skeleton, not a spinner. Anywhere the app is
+   waiting on the local model, it uses this — never Tailwind's stock pulse,
+   which ships its own foreign 2s cubic-bezier. */
+@keyframes mise-dot {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mise-dot {
+  animation: mise-dot 1s var(--ease) infinite alternate;
+}
+
+/* Motion is allowed in exactly four places; kill all of it on request. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}

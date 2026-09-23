@@ -1,0 +1,36 @@
+# MLX-LM LoRA config for fine-tuning qwen3-8b on the Mise scheduling skill.
+# Run:  mlx_lm.lora --config lora-config.yaml
+#
+# The data uses a COMPACT prompt (terse tool list + schedule, ~2k tokens) instead
+# of the full 14k-token inference prompt — a fine-tuned model internalizes the
+# rules/schemas, so we don't ship them. That drops training memory from >64GB
+# (infeasible) to ~5GB on a 0.6B / ~25GB on the 8B, and makes the tuned model far
+# cheaper to prefill at inference. max_seq_length 4096 covers the ~2k examples.
+
+model: "Qwen/Qwen3-8B"
+train: true
+data: "./data"            # expects data/train.jsonl + data/valid.jsonl
+adapter_path: "./adapters"
+
+# ~1.1 epochs over 803 train examples. Checkpoints at 300/600/900 so we can grab
+# an early one if it's already good.
+iters: 900
+batch_size: 1
+max_seq_length: 4096
+grad_checkpoint: true      # trade compute for memory
+mask_prompt: true          # train ONLY on the assistant tool-call, not the prompt
+
+learning_rate: 1.0e-5
+steps_per_report: 25
+steps_per_eval: 300
+save_every: 300
+seed: 7
+
+# LoRA on attention projections of the last N layers — light + effective for
+# teaching tool-selection/arg-shaping without disturbing general ability.
+num_layers: 12
+lora_parameters:
+  keys: ["self_attn.q_proj", "self_attn.k_proj", "self_attn.v_proj", "self_attn.o_proj"]
+  rank: 16
+  scale: 20.0
+  dropout: 0.05
