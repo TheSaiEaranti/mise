@@ -6,13 +6,16 @@ schedule changes and a deterministic engine validates and applies them. The UI
 is reachable from a laptop and phone over Tailscale. Single user, no auth, no
 cloud. The full design lives in [SPEC.md](./SPEC.md); this file is how to run it.
 
-**Demo video:** [docs/showcase.webm](docs/showcase.webm), a narrated walkthrough
-just under two minutes long (1920×1080 WebM; plays in Chrome or Firefox, not
-QuickTime). It covers a plan that reflows the day, a bulk shift that leaves a
-pinned class alone, a change to every week of the semester, editing every gym
-block at once, a cancel that asks first, and Undo. The captions and timing
-badges are added by the recorder (`scripts/record-showcase.ts`); each badge's
-latency is read from that turn's real trace.
+[![Mise demo: a narrated walkthrough of the calendar agent](docs/showcase.gif)](docs/showcase.webm)
+
+The demo above (just under two minutes) covers a plan that reflows the day, a
+bulk shift that leaves a pinned class alone, a change to every week of the
+semester, editing every gym block at once, a cancel that asks first, and Undo.
+It's a 960 px, 5 fps preview; click it for the full-resolution video
+([docs/showcase.webm](docs/showcase.webm), 1920×1080, plays in Chrome or
+Firefox). The captions and timing badges are added by the recorder
+(`scripts/record-showcase.ts`); each badge's latency is read from that turn's
+real trace.
 
 Five invariants define the app (SPEC §0):
 
